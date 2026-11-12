@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Run backend tests
+        working-directory: backend
+        run: mvn -B test
+
+  frontend:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run frontend tests
+        run: npx ng test --watch=false
+
+  e2e:
+    name: Playwright path
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: founderslab
+          POSTGRES_USER: founderslab
+          POSTGRES_PASSWORD: founderslab
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U founderslab -d founderslab"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend
+        working-directory: frontend
+        run: npm ci
+      - name: Install Playwright
+        working-directory: e2e
+        run: npm ci && npx playwright install --with-deps chromium
+      - name: Start backend
+        working-directory: backend
+        env:
+          DATABASE_URL: jdbc:postgresql://localhost:5432/founderslab
+          POSTGRES_USER: founderslab
+          POSTGRES_PASSWORD: founderslab
+          GOOGLE_CLIENT_ID: unset
+          GOOGLE_CLIENT_SECRET: unset
+          FOUNDER_EMAIL_ALLOWLIST: ada@example.com,grace@example.com
+          COOKIE_SECURE: "false"
+          FOUNDERSLAB_E2E_LOGIN: "true"
+          FOUNDERSLAB_E2E_FIXTURES: "true"
+        run: mvn -B spring-boot:run &
+      - name: Start frontend
+        working-directory: frontend
+        run: npx ng serve --host 127.0.0.1 --port 4200 &
+      - name: Wait for the app
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:8080/v3/api-docs >/dev/null && curl -sf http://127.0.0.1:4200/ >/dev/null && exit 0
+            sleep 5
+          done
+          exit 1
+      - name: Run Playwright
+        working-directory: e2e
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4200
+        run: npx playwright test

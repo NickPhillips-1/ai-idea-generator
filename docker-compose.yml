@@ -1,0 +1,52 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-founderslab}
+      POSTGRES_USER: ${POSTGRES_USER:-founderslab}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-founderslab}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-founderslab} -d ${POSTGRES_DB:-founderslab}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-founderslab}
+      POSTGRES_USER: ${POSTGRES_USER:-founderslab}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-founderslab}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-unset}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-unset}
+      FOUNDER_EMAIL_ALLOWLIST: ${FOUNDER_EMAIL_ALLOWLIST:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+      CENSUS_API_KEY: ${CENSUS_API_KEY:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      FOUNDERSLAB_E2E_LOGIN: ${FOUNDERSLAB_E2E_LOGIN:-false}
+      FOUNDERSLAB_E2E_FIXTURES: ${FOUNDERSLAB_E2E_FIXTURES:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npx ng serve --host 0.0.0.0 --port 4200 --poll 2000"
+    volumes:
+      - ./frontend:/app
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+
+  proxy:
+    image: caddy:2
+    ports:
+      - "8080:80"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - backend
+      - frontend

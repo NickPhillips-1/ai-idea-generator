@@ -1,0 +1,15 @@
+<section>
+  <h1>Dashboard</h1>
+  @if (session(); as current) {
+    <p>Signed in as {{ current.name }}.</p>
+  } @else if (loadError()) {
+    <p>The session could not be loaded.</p>
+  } @else {
+    <p>Loading the session.</p>
+  }
+  @if (findings().length) {
+    <app-finding-review [findings]="findings()" />
+  } @else {
+    <p class="note">No research findings yet. A finding will appear here only after a research job stores one.</p>
+  }
+</section>

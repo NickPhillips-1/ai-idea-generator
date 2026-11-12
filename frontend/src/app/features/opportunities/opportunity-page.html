@@ -1,0 +1,41 @@
+<section>
+  <h1>Opportunity</h1>
+  <app-finding-review [findings]="findings()" />
+  @if (findings().length === 0) {
+    <p class="note">A decision waits until a finding is on this page.</p>
+  } @else {
+    <form [formGroup]="opportunityForm" (ngSubmit)="createOpportunity()">
+      <label>Title <input formControlName="title" /></label>
+      <label>Customer problem <textarea formControlName="customerProblem"></textarea></label>
+      <label>Target customer <input formControlName="targetCustomer" /></label>
+      <button type="submit">Save opportunity</button>
+    </form>
+  }
+  @if (opportunityId()) {
+    <form [formGroup]="productForm" (ngSubmit)="addProduct()">
+      <h2>Product concept</h2>
+      <label>Description <textarea formControlName="description"></textarea></label>
+      <label>Target buyers <textarea formControlName="targetBuyers"></textarea></label>
+      <label>Differentiation <textarea formControlName="differentiation"></textarea></label>
+      <label>Estimated costs <textarea formControlName="estimatedCosts"></textarea></label>
+      <label>Feasibility <textarea formControlName="feasibility"></textarea></label>
+      <button type="submit">Save product concept</button>
+    </form>
+    @if (productSaved()) {
+      <p class="note">Product concept saved. Costs and feasibility are notes, not verified figures.</p>
+    }
+    <form (ngSubmit)="decide('ADVANCE')">
+      <h2>Founder decision</h2>
+      <p>Fact, interpretation, and unknowns are above. A decision does not change the opportunity status.</p>
+      <label>Rationale <textarea [formControl]="rationale"></textarea></label>
+      <button type="submit">ADVANCE</button>
+      <button type="button" (click)="decide('INVESTIGATE')">INVESTIGATE</button>
+    </form>
+  }
+  @if (status(); as current) {
+    <p>Opportunity status: <span class="data">{{ current }}</span></p>
+  }
+  @if (errorMessage(); as message) {
+    <p>{{ message }}</p>
+  }
+</section>

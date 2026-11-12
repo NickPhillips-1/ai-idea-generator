@@ -1,0 +1,20 @@
+<section>
+  <h1>Alignment</h1>
+  <p>Select submitted questionnaires from at least two founders.</p>
+  @for (row of rows(); track row.id) {
+    <label>
+      <input type="checkbox" (change)="toggle(row.id ?? '', $any($event.target).checked)" />
+      {{ row.founderId }} · <span class="data">{{ row.status }}</span>
+    </label>
+  }
+  <button type="button" (click)="generate()">Generate alignment</button>
+  @if (explanation(); as text) {
+    <h2>AI explanation</h2>
+    <p>{{ text }}</p>
+    <p class="note">This is the model's reading, not a verified fact.</p>
+    <a routerLink="/directions">Continue to a research direction</a>
+  }
+  @if (errorMessage(); as message) {
+    <p>{{ message }}</p>
+  }
+</section>

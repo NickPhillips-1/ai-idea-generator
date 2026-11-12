@@ -1,0 +1,15 @@
+<section>
+  <h1>Research direction</h1>
+  <form [formGroup]="form" (ngSubmit)="create()">
+    <label>Title <input formControlName="title" /></label>
+    <label>Description <textarea formControlName="description"></textarea></label>
+    <button type="submit">Save direction</button>
+  </form>
+  @if (directionId(); as id) {
+    <p>Direction {{ id }} is saved.</p>
+    <a routerLink="/research">Start research</a>
+  }
+  @if (errorMessage(); as message) {
+    <p>{{ message }}</p>
+  }
+</section>

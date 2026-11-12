@@ -1,0 +1,26 @@
+:80 {
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+	handle /login/* {
+		reverse_proxy backend:8080
+	}
+	handle /oauth2/* {
+		reverse_proxy backend:8080
+	}
+	handle /logout {
+		reverse_proxy backend:8080
+	}
+	handle /v3/* {
+		reverse_proxy backend:8080
+	}
+	handle /swagger-ui* {
+		reverse_proxy backend:8080
+	}
+	handle /e2e/* {
+		reverse_proxy backend:8080
+	}
+	handle {
+		reverse_proxy frontend:4200
+	}
+}

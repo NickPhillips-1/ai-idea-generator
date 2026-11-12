@@ -1,0 +1,15 @@
+@for (finding of findings(); track finding.id) {
+  <article class="layer">
+    <h2>Factual summary</h2>
+    <p>{{ finding.factualSummary }}</p>
+    <p>Source <span class="data">{{ finding.originalReference }}</span>, retrieved <span class="data">{{ finding.retrievedAt }}</span>.</p>
+    <h2>Supporting evidence</h2>
+    <p>{{ finding.supportingEvidence }}</p>
+    <h2>AI interpretation</h2>
+    <p>{{ finding.aiInterpretation }}</p>
+    <p class="note">This is the model's reading, not a verified fact.</p>
+    <h2>Unknowns</h2>
+    <p>{{ finding.unknowns }}</p>
+    <p class="note">Verification: <span class="data">{{ finding.verificationStatus }}</span>. Census County Business Patterns does not prove customer pain.</p>
+  </article>
+}

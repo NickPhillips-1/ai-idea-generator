@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: founders-lab
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/founderslab}
+    username: ${POSTGRES_USER:founderslab}
+    password: ${POSTGRES_PASSWORD:founderslab}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:unset}
+            client-secret: ${GOOGLE_CLIENT_SECRET:unset}
+            scope: openid,profile,email
+            client-name: Google
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://openidconnect.googleapis.com/v1/userinfo
+            jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+            user-name-attribute: email
+
+server:
+  servlet:
+    session:
+      cookie:
+        name: FOUNDERSLAB_SESSION
+        http-only: true
+        secure: ${COOKIE_SECURE:true}
+        same-site: lax
+
+founderslab:
+  auth:
+    email-allowlist: ${FOUNDER_EMAIL_ALLOWLIST:}
+  e2e:
+    login-enabled: ${FOUNDERSLAB_E2E_LOGIN:false}
+    fixtures: ${FOUNDERSLAB_E2E_FIXTURES:false}
+  research:
+    max-jobs-per-hour: ${FOUNDERSLAB_MAX_JOBS_PER_HOUR:30}
+    max-estimated-cost: ${FOUNDERSLAB_MAX_ESTIMATED_COST:25}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,157 @@
+:host {
+  display: block;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 1.25rem;
+  row-gap: 0.5rem;
+  padding: 0.85rem clamp(1rem, 3vw, 1.5rem);
+  padding-left: max(clamp(1rem, 3vw, 1.5rem), env(safe-area-inset-left));
+  padding-right: max(clamp(1rem, 3vw, 1.5rem), env(safe-area-inset-right));
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.product-name {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  padding-block: 0.3rem;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.nav {
+  display: flex;
+  grid-column: 2;
+  grid-row: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1.1rem;
+  min-width: 0;
+}
+
+.account {
+  position: relative;
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+  justify-self: end;
+}
+
+.sign-in {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--corner);
+  background: var(--surface);
+  line-height: 1.3;
+}
+
+.profile {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.profile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.logout {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: max-content;
+  max-width: none;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.logout:disabled {
+  cursor: progress;
+  color: var(--ink);
+  opacity: 1;
+}
+
+.top a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav a {
+  padding-block: 0.35rem;
+}
+
+main {
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  padding-left: max(clamp(1rem, 2.5vw, 1.5rem), env(safe-area-inset-left));
+  padding-right: max(clamp(1rem, 2.5vw, 1.5rem), env(safe-area-inset-right));
+  padding-bottom: max(clamp(1rem, 2.5vw, 1.5rem), env(safe-area-inset-bottom));
+}
+
+@media (max-width: 40rem) {
+  .top {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .account {
+    grid-column: 2;
+  }
+
+  .nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+    gap: 0.15rem 0.75rem;
+  }
+
+  .nav a {
+    padding-block: 0.6rem;
+  }
+}
+
+main.gate {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--surface);
+}
+
+.gate-mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0.85rem clamp(1rem, 3vw, 1.5rem);
+  padding-top: max(0.85rem, env(safe-area-inset-top));
+  padding-left: max(clamp(1rem, 3vw, 1.5rem), env(safe-area-inset-left));
+}

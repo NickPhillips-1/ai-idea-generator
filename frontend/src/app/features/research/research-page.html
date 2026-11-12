@@ -1,0 +1,20 @@
+<section>
+  <h1>Research</h1>
+  <p>County Business Patterns is the approved source. The job is polled every 2 seconds.</p>
+  @if (directionReady()) {
+    <button type="button" (click)="start()">Start Census research</button>
+  } @else {
+    <p class="note">Save a research direction first.</p>
+  }
+  @if (status(); as current) {
+    <p>Job status: <span class="data">{{ current }}</span></p>
+  }
+  <app-finding-review [findings]="findings()" />
+  @if (findings().length) {
+    <a routerLink="/opportunities">Review the finding before a decision</a>
+    <a routerLink="/dashboard">Open the dashboard review</a>
+  }
+  @if (errorMessage(); as message) {
+    <p>{{ message }}</p>
+  }
+</section>

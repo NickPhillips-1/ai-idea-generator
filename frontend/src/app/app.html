@@ -1,0 +1,66 @@
+@if (workspace()) {
+<header class="top">
+  <a class="product-name" routerLink="/dashboard">Founders</a>
+  <nav class="nav" aria-label="Workspace">
+    <a routerLink="/questionnaires">Questionnaires</a>
+    <a routerLink="/alignments">Alignment</a>
+    <a routerLink="/directions">Direction</a>
+    <a routerLink="/research">Research</a>
+    <a routerLink="/opportunities">Opportunity</a>
+  </nav>
+  <div class="account">
+    @if (account(); as person) {
+      <button
+        type="button"
+        class="profile"
+        [attr.aria-label]="person.name"
+        [attr.aria-expanded]="menuOpen()"
+        aria-haspopup="menu"
+        (click)="toggleMenu($event)"
+      >
+        @if (person.pictureUrl && !pictureFailed()) {
+          <img
+            [src]="person.pictureUrl"
+            alt=""
+            referrerpolicy="no-referrer"
+            (error)="pictureFailed.set(true)"
+          />
+        } @else {
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="9" r="3.25" fill="none" stroke="currentColor" stroke-width="1.6" />
+            <path
+              d="M5.8 18.4a6.4 6.4 0 0 1 12.4 0"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
+          </svg>
+        }
+      </button>
+      @if (menuOpen()) {
+        <button
+          type="button"
+          class="logout"
+          (click)="logout($event)"
+          [disabled]="loggingOut()"
+          [attr.aria-busy]="loggingOut() ? true : null"
+        >
+          @if (loggingOut()) {
+            <span class="spin" aria-hidden="true"></span>
+          }
+          Log out
+        </button>
+      }
+    } @else if (sessionReady()) {
+      <a class="sign-in" routerLink="/login">Sign in</a>
+    }
+  </div>
+</header>
+}
+<main [class.gate]="!workspace()">
+  @if (!workspace()) {
+    <span class="product-name gate-mark">Founders</span>
+  }
+  <router-outlet />
+</main>
