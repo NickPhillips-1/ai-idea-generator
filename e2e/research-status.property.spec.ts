@@ -63,6 +63,7 @@ async function showStatus(page: Page, status: (typeof STATUSES)[number]): Promis
     });
   });
 
+  await page.evaluate(() => sessionStorage.removeItem('founderslab.jobId'));
   await page.goto('/research');
   await page.getByRole('button', { name: 'Start Census research' }).click();
   await expect(page.getByText(`Job status: ${status}`)).toBeVisible();
