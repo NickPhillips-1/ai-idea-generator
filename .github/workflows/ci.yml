@@ -108,3 +108,20 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:4200
         run: npx playwright test
+
+  formal:
+    name: Formal checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install Lean
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Check the research job model and the retry table
+        run: sh backend/formal/check.sh

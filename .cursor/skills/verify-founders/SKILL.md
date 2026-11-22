@@ -10,7 +10,7 @@ description: >-
 
 Founders is the Angular app behind Caddy on port 8080, with the Spring API and Postgres from Docker Compose. Verification uses fixture Census and fixture model output. It signs in with `POST /e2e/login`. It does not complete Google OAuth and it does not call live Census or a paid model.
 
-Launch replaces this repo's Compose project and deletes its database volume. It does not stop containers from other projects. Port 8080 must be free.
+Launch replaces this Compose project and deletes its database volume. It does not stop other project names. The default origin is `http://127.0.0.1:8080`. A second worktree sets `COMPOSE_PROJECT_NAME`, `FOUNDERS_HTTP_PORT`, and `POSTGRES_HOST_PORT` to values the first stack is not using, and sets `PLAYWRIGHT_BASE_URL` to that HTTP port.
 
 ## Launch
 

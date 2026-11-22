@@ -1,7 +1,10 @@
 #!/bin/sh
 set -eu
-base="${PLAYWRIGHT_BASE_URL:-http://127.0.0.1:8080}"
+http_port="${FOUNDERS_HTTP_PORT:-8080}"
+base="${PLAYWRIGHT_BASE_URL:-http://127.0.0.1:${http_port}}"
 base="${base%/}"
+project="${COMPOSE_PROJECT_NAME:-directory default}"
+echo "doctor: project ${project}"
 
 if ! curl -sf "$base/v3/api-docs" >/dev/null; then
   echo "doctor: OpenAPI is not up at $base/v3/api-docs" >&2

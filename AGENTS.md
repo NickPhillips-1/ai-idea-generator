@@ -18,6 +18,7 @@ Founders is an Angular 22 app, a Spring Boot API (`com.founderslab`), and Playwr
 - Frontend tests: `cd frontend && npm test -- --no-watch --no-progress`
 - Frontend lint: `cd frontend && npx ng lint`
 - UI behavior: drive the mapped feature with [.cursor/skills/verify-founders/SKILL.md](.cursor/skills/verify-founders/SKILL.md). A unit test is not a substitute.
+- Research job behavior: [.cursor/skills/verify-research-job/SKILL.md](.cursor/skills/verify-research-job/SKILL.md) (`sh backend/formal/check.sh`). A green run still reports the cancel-vs-publish finding.
 
 A bug fix names the check that fails on the parent and passes on the change.
 
@@ -35,6 +36,9 @@ Install the Cursor plugin with `/add-plugin pstack`, then run `/setup-pstack` on
 - `/correct` when the same mistake shows up twice. Prefer a lint or a test over another paragraph here.
 - `/reflect` when the lesson is about workflow, not a check the compiler can enforce
 - `/maintain-verification-skill` when the feature map drifts
+- `/statechart` to read a TLC counterexample from `verify-research-job`
+
+Delegates follow [worker.md](worker.md). One owner per PR. A stacked PR is only for a real dependency. Babysit, shipping, and autopilot are [.cursor/skills/founders-babysit/SKILL.md](.cursor/skills/founders-babysit/SKILL.md), [.cursor/skills/founders-shipping/SKILL.md](.cursor/skills/founders-shipping/SKILL.md), and [.cursor/skills/founders-autopilot/SKILL.md](.cursor/skills/founders-autopilot/SKILL.md). An independent verdict is [.cursor/skills/verify-patch/SKILL.md](.cursor/skills/verify-patch/SKILL.md). There is no canary. See [docs/operations/RELEASE_CHECKS.md](docs/operations/RELEASE_CHECKS.md).
 
 ## What a check enforces
 
@@ -43,3 +47,5 @@ Install the Cursor plugin with `/add-plugin pstack`, then run `/setup-pstack` on
 | Feature code does not import `HttpClient`, `timer`, or another feature (except `findings/finding-review`) | `npx ng lint` |
 | Controllers do not import Census or AI packages; jobs do not import `CensusCountyBusinessPatternsAdapter`; Java does not depend on the Angular app | `mvn -B test` (ArchUnit) |
 | A mapped screen works for a founder | `.cursor/skills/verify-founders` |
+| Research job ordering and the retry table | `sh backend/formal/check.sh` |
+| A pull request was checked by someone other than the author | `.cursor/skills/verify-patch` |
