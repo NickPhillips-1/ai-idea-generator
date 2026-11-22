@@ -13,11 +13,6 @@ import java.util.HexFormat;
 @Component
 public class CensusCountyBusinessPatternsAdapter implements ResearchSourceAdapter {
 
-    public static final String CENSUS_LIMIT =
-            "US Census County Business Patterns reports establishment structure for a geography and NAICS code. "
-                    + "It cannot support willingness to pay, a specific customer problem, manufacturing feasibility, "
-                    + "unit cost, differentiation, or that a buyer wants a new product.";
-
     private final RestClient restClient;
     private final String apiKey;
 

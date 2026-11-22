@@ -6,7 +6,6 @@ import com.founderslab.evidence.ResearchSourceRecord;
 import com.founderslab.evidence.ResearchSourceRepository;
 import com.founderslab.integration.ai.AIProvider;
 import com.founderslab.integration.ai.FindingDraft;
-import com.founderslab.integration.sources.CensusCountyBusinessPatternsAdapter;
 import com.founderslab.integration.sources.ResearchData;
 import com.founderslab.integration.sources.ResearchRequest;
 import com.founderslab.integration.sources.ResearchSourceAdapter;
@@ -103,8 +102,8 @@ public class ResearchWorker {
                 throw new IllegalStateException("The model response failed validation.");
             }
             String unknowns = draft.getUnknowns();
-            if (!unknowns.contains(CensusCountyBusinessPatternsAdapter.CENSUS_LIMIT)) {
-                unknowns = unknowns + " " + CensusCountyBusinessPatternsAdapter.CENSUS_LIMIT;
+            if (!unknowns.contains(ResearchSourceAdapter.CENSUS_LIMIT)) {
+                unknowns = unknowns + " " + ResearchSourceAdapter.CENSUS_LIMIT;
             }
             ResearchSourceRecord source = sources.save(new ResearchSourceRecord(
                     job.getApprovedResearchSourceId(),

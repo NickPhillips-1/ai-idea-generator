@@ -2,12 +2,6 @@
 	handle /api/* {
 		reverse_proxy backend:8080
 	}
-	handle /login/* {
-		reverse_proxy backend:8080
-	}
-	handle /oauth2/* {
-		reverse_proxy backend:8080
-	}
 	handle /logout {
 		reverse_proxy backend:8080
 	}

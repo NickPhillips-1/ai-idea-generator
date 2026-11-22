@@ -89,8 +89,6 @@ Backend authorization tests are the gate for any UI that looks protected. Angula
 
 Do not store secrets in git. Refer to these names only:
 
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
 - `FOUNDER_EMAIL_ALLOWLIST`
 - `AI_API_KEY`
 - `AI_MODEL`

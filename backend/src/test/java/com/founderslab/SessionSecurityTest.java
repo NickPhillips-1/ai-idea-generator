@@ -12,7 +12,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -21,8 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,7 +45,6 @@ class SessionSecurityTest {
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
-        registry.add("founderslab.auth.email-allowlist", () -> "ada@example.com,new@example.com");
         registry.add("COOKIE_SECURE", () -> "false");
     }
 
@@ -76,41 +79,48 @@ class SessionSecurityTest {
     }
 
     @Test
-    void emailOutsideTheAllowlistIsForbidden() throws Exception {
-        mockMvc.perform(get("/api/v1/session").with(oauth2Login().attributes(attrs -> {
-            attrs.put("email", "stranger@example.com");
-            attrs.put("sub", "stranger");
-        })))
+    void unknownAccountIsForbidden() throws Exception {
+        mockMvc.perform(get("/api/v1/session").with(user("stranger@example.com")))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403))
                 .andExpect(jsonPath("$.fieldErrors").isArray());
     }
 
     @Test
-    void allowlistedGoogleUserIsEnrolledOnFirstSession() throws Exception {
-        mockMvc.perform(get("/api/v1/session").with(oauth2Login().attributes(attrs -> {
-            attrs.put("email", "new@example.com");
-            attrs.put("name", "New Founder");
-            attrs.put("picture", "https://example.com/new.png");
-            attrs.put("sub", "new");
-        })))
+    void nickSignsInWithPassword() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/login")
+                        .with(csrf())
+                        .param("username", "nick")
+                        .param("password", "password"))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        mockMvc.perform(get("/api/v1/session").session((MockHttpSession) login.getRequest().getSession(false)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("new@example.com"))
-                .andExpect(jsonPath("$.name").value("New Founder"))
-                .andExpect(jsonPath("$.pictureUrl").value("https://example.com/new.png"))
+                .andExpect(jsonPath("$.email").value("nick@localhost"))
+                .andExpect(jsonPath("$.name").value("nick"))
+                .andExpect(jsonPath("$.pictureUrl").doesNotExist())
                 .andExpect(jsonPath("$.role").value("FOUNDER"))
                 .andExpect(jsonPath("$.workspaceId").value(WORKSPACE_ID.toString()));
     }
 
     @Test
-    void allowlistedMemberCanReadTheSession() throws Exception {
+    void wrongPasswordIsUnauthorized() throws Exception {
+        mockMvc.perform(post("/api/v1/login")
+                        .with(csrf())
+                        .param("username", "nick")
+                        .param("password", "nope"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.fieldErrors").isArray());
+    }
+
+    @Test
+    void memberCanReadTheSession() throws Exception {
         Founder founder = founders.save(new Founder("Ada", "ada@example.com"));
         members.save(new WorkspaceMember(new WorkspaceMemberId(WORKSPACE_ID, founder.getId())));
 
-        mockMvc.perform(get("/api/v1/session").with(oauth2Login().attributes(attrs -> {
-            attrs.put("email", "ada@example.com");
-            attrs.put("sub", "ada");
-        })))
+        mockMvc.perform(get("/api/v1/session").with(user("ada@example.com")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("ada@example.com"))
                 .andExpect(jsonPath("$.name").value("Ada"))

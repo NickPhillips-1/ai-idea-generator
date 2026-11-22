@@ -28,6 +28,11 @@ public class Founder {
     @Column(nullable = false, unique = true)
     private String email;
 
+    private String username;
+
+    @Column(name = "password_hash")
+    private String passwordHash;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false)
     private Map<String, Object> profile = new HashMap<>();
@@ -60,6 +65,22 @@ public class Founder {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     @PrePersist

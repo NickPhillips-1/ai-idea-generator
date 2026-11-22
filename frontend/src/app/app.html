@@ -1,13 +1,6 @@
 @if (workspace()) {
 <header class="top">
   <a class="product-name" routerLink="/dashboard">Founders</a>
-  <nav class="nav" aria-label="Workspace">
-    <a routerLink="/questionnaires">Questionnaires</a>
-    <a routerLink="/alignments">Alignment</a>
-    <a routerLink="/directions">Direction</a>
-    <a routerLink="/research">Research</a>
-    <a routerLink="/opportunities">Opportunity</a>
-  </nav>
   <div class="account">
     @if (account(); as person) {
       <button

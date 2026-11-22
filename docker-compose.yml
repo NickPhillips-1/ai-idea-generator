@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-founderslab}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-founderslab}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-founderslab} -d ${POSTGRES_DB:-founderslab}"]
       interval: 5s
@@ -19,8 +19,6 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-founderslab}
       POSTGRES_USER: ${POSTGRES_USER:-founderslab}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-founderslab}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-unset}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-unset}
       FOUNDER_EMAIL_ALLOWLIST: ${FOUNDER_EMAIL_ALLOWLIST:-}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-}
@@ -35,18 +33,44 @@ services:
   frontend:
     image: node:22-alpine
     working_dir: /app
-    command: sh -c "npm install && npx ng serve --host 0.0.0.0 --port 4200 --poll 2000"
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        npm install --legacy-peer-deps
+        cpu=$$(uname -m)
+        case "$$cpu" in
+          aarch64|arm64) cpu=arm64 ;;
+          x86_64) cpu=x64 ;;
+        esac
+        install_binding() {
+          spec="$$1"
+          dest="$$2"
+          file=$$(npm pack "$$spec" --pack-destination /tmp | tail -n 1)
+          mkdir -p "$$dest"
+          tar -xzf "/tmp/$$file" -C "$$dest" --strip-components=1
+        }
+        install_binding "@rolldown/binding-linux-$${cpu}-musl@1.2.19" "node_modules/vite/node_modules/@rolldown/binding-linux-$${cpu}-musl"
+        install_binding "@rolldown/binding-linux-$${cpu}-musl@1.2.16" "node_modules/@rolldown/binding-linux-$${cpu}-musl"
+        install_binding "@oxc-parser/binding-linux-$${cpu}-musl@0.156.0" "node_modules/@oxc-parser/binding-linux-$${cpu}-musl"
+        install_binding "lightningcss-linux-$${cpu}-musl@1.33.0" "node_modules/lightningcss-linux-$${cpu}-musl"
+        npx ng serve --host 0.0.0.0 --port 4200 --poll 2000
     volumes:
       - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
     environment:
       CHOKIDAR_USEPOLLING: "true"
 
   proxy:
     image: caddy:2
     ports:
-      - "8080:80"
+      - "${FOUNDERS_HTTP_PORT:-8080}:80"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
       - backend
       - frontend
+
+volumes:
+  frontend_node_modules:

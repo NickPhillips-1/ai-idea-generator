@@ -35,7 +35,7 @@ The five colors already in the stylesheets become the only palette. They describ
 :root {
   --ink: #1c1917;
   --ink-muted: #57534e;
-  --paper: #f6f3ee;
+  --paper: #ffffff;
   --surface: #ffffff;
   --line: #e7e0d6;
   --corner: 0.65rem;
@@ -62,7 +62,7 @@ Each finding layer uses `--surface` and `--line`. The caveat under AI interpreta
 
 A button is the only curved surface. `--corner` in the block above is the radius.
 
-`frontend/src/styles.css` sets `border-radius: var(--corner)` on `button`, with `0.45rem 0.9rem` padding so the curve stays clear of the label. The shell sign-in control and the Google sign-in control use the same token, because each is drawn as a button. A form, a finding layer, an input, and a textarea stay square, so a curved edge means an action.
+`frontend/src/styles.css` sets `border-radius: var(--corner)` on `button`, with `0.45rem 0.9rem` padding so the curve stays clear of the label. The shell sign-in control and the login button use the same token, because each is drawn as a button. A form, a finding layer, an input, and a textarea stay square, so a curved edge means an action.
 
 A radius large enough to make a capsule is a different shape. It is outside this design, the same way a colored pill is.
 
