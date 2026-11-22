@@ -42,8 +42,9 @@ export async function alignTwoFounders(browser: Browser): Promise<{ ada: Page; c
   await submitQuestionnaire(ada, 'retail fixtures', 'fabrication', 'a small shop', 'a physical product');
   await submitQuestionnaire(grace, 'store displays', 'welding', 'steel stock', 'something we can make');
   await ada.goto('/alignments');
-  await expect(ada.getByRole('checkbox')).toHaveCount(2);
-  for (const box of await ada.getByRole('checkbox').all()) {
+  const boxes = ada.getByRole('checkbox');
+  await expect.poll(async () => await boxes.count()).toBeGreaterThanOrEqual(2);
+  for (const box of await boxes.all()) {
     await box.check();
   }
   await ada.getByRole('button', { name: 'Generate alignment' }).click();

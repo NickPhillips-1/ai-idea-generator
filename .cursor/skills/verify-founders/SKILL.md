@@ -33,7 +33,7 @@ Ready means the Caddy origin serves the Angular app and the API. A database heal
 sh e2e/scripts/doctor.sh
 ```
 
-Doctor is read-only. It checks OpenAPI, the app origin, and that `POST /e2e/login` is not 404. A 404 means this process is the human Google stack. A 403 is expected: the route exists and still requires the CSRF header. Run doctor before driving whenever the app looks wrong.
+Doctor is read-only. It checks OpenAPI, the app origin, and that `POST /e2e/login` is not 404. A 404 means this process was started without `FOUNDERSLAB_E2E_LOGIN=true`. A 403 is expected: the route exists and still requires the CSRF header. Run doctor before driving whenever the app looks wrong.
 
 ## Drive
 
