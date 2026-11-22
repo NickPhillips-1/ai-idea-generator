@@ -480,16 +480,6 @@
   dependencies:
     tslib "^2.4.0"
 
-"@esbuild/darwin-arm64@0.28.2":
-  version "0.28.2"
-  resolved "https://registry.npmjs.org/@esbuild/darwin-arm64/-/darwin-arm64-0.28.2.tgz"
-  integrity sha512-n4KqkOQrraxHJcgjM1RvwbigfQKIKJVpM7xp+KsxiyUSrRdIXnt73VhrPAx0fV44hgfmIVKjxMN9J1t5jySVkw==
-
-"@esbuild/linux-x64@0.28.2":
-  version "0.28.2"
-  resolved "https://registry.npmjs.org/@esbuild/linux-x64/-/linux-x64-0.28.2.tgz"
-  integrity sha512-4xTZr1FUmSoQW4XIWmit3tzQrUTZM+N3P0XV8xROKYF50XfI7xeO90+1bZvNwxIufQ9hDQVRJH5YhgPVF8A/HQ==
-
 "@eslint-community/eslint-utils@^4.8.0", "@eslint-community/eslint-utils@^4.9.1":
   version "4.10.1"
   resolved "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.10.1.tgz"
@@ -542,11 +532,6 @@
   version "1.16.0"
   resolved "https://registry.npmjs.org/@exodus/bytes/-/bytes-1.16.0.tgz"
   integrity sha512-IcpW84uEn3N7ETtNZMlxKhfl6Pec8rUNGOTBtWbK1FKhJxIFAptZyVrvVRVBimAJxJCgc3PxepxkdWWG4DVzfA==
-
-"@harperfast/extended-iterable@^1.0.3":
-  version "1.0.5"
-  resolved "https://registry.npmjs.org/@harperfast/extended-iterable/-/extended-iterable-1.0.5.tgz"
-  integrity sha512-4ScXlphaKEa49RpHmqwATq9QI9aUTdWVYDlJkzxhsD7ShJP+pHCYLznMO9n/wREY8jPjRZ59wLJY6HM5yB5Gkw==
 
 "@humanfs/core@^0.19.2":
   version "0.19.2"
@@ -790,16 +775,6 @@
   dependencies:
     "@inquirer/type" "^4.0.7"
 
-"@lmdb/lmdb-darwin-arm64@3.5.6":
-  version "3.5.6"
-  resolved "https://registry.npmjs.org/@lmdb/lmdb-darwin-arm64/-/lmdb-darwin-arm64-3.5.6.tgz"
-  integrity sha512-mY5FG4TjPAkY4P0w+OhHaUka5mDh2TX2WKYIwuKzJ1zeW3VvRgxdam/lGJTquI+bthTx5CSHDW+BAQCnNAzkEA==
-
-"@lmdb/lmdb-linux-x64@3.5.6":
-  version "3.5.6"
-  resolved "https://registry.npmjs.org/@lmdb/lmdb-linux-x64/-/lmdb-linux-x64-3.5.6.tgz"
-  integrity sha512-ADzCuCF2cTNiX9kDScqcz1fjnAkxPpQNneV3KFTdV3wWtVlI2sTGzySoMTgDpinkMMFj1NTJlxA6XR8fwc4hlA==
-
 "@modelcontextprotocol/core@2.3.1":
   version "2.3.1"
   resolved "https://registry.npmjs.org/@modelcontextprotocol/core/-/core-2.3.1.tgz"
@@ -814,26 +789,6 @@
   dependencies:
     "@modelcontextprotocol/core" "2.3.1"
     zod "^4.2.0"
-
-"@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.7":
-  version "3.0.7"
-  resolved "https://registry.npmjs.org/@msgpackr-extract/msgpackr-extract-darwin-arm64/-/msgpackr-extract-darwin-arm64-3.0.7.tgz"
-  integrity sha512-2zPHLn+MuGJ6GP/5jDrwa9Jy0CI+D3Ibpvopf5SFfmc1G9gdofR4uB7YrJAAp4vodn/7iDOciyv8bgkRPLw7cA==
-
-"@msgpackr-extract/msgpackr-extract-linux-x64@3.0.7":
-  version "3.0.7"
-  resolved "https://registry.npmjs.org/@msgpackr-extract/msgpackr-extract-linux-x64/-/msgpackr-extract-linux-x64-3.0.7.tgz"
-  integrity sha512-A9xOmARctmUvHrBj5GGzGAigsZFnqE4kld5oprX3PyPbkVALV4jwBc17gPZrhSOvnXQc81hE9K7S2hDUCgialA==
-
-"@napi-rs/nice-darwin-arm64@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/@napi-rs/nice-darwin-arm64/-/nice-darwin-arm64-1.1.1.tgz"
-  integrity sha512-s/E7w45NaLqTGuOjC2p96pct4jRfo61xb9bU1unM/MJ/RFkKlJyJDx7OJI/O0ll/hrfpqKopuAFDV8yo0hfT7A==
-
-"@napi-rs/nice-linux-x64-gnu@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/@napi-rs/nice-linux-x64-gnu/-/nice-linux-x64-gnu-1.1.1.tgz"
-  integrity sha512-/gaNz3R92t+dcrfCw/96pDopcmec7oCcAQ3l/M+Zxr82KT4DljD37CpgrnXV+pJC263JkW572pdbP3hP+KjcIg==
 
 "@napi-rs/nice@^1.0.4":
   version "1.1.1"
@@ -865,16 +820,6 @@
   dependencies:
     "@tybys/wasm-util" "^0.10.3"
 
-"@oxc-parser/binding-darwin-arm64@0.156.0":
-  version "0.156.0"
-  resolved "https://registry.npmjs.org/@oxc-parser/binding-darwin-arm64/-/binding-darwin-arm64-0.156.0.tgz"
-  integrity sha512-6pGR5fUszM9M4eBBapqpGjCRJolFwuCldx8bRQjqXyM09cQysBTWVF2Ttg4UNJVxYSaw5RRINbveCOOCrsuGvA==
-
-"@oxc-parser/binding-linux-x64-gnu@0.156.0":
-  version "0.156.0"
-  resolved "https://registry.npmjs.org/@oxc-parser/binding-linux-x64-gnu/-/binding-linux-x64-gnu-0.156.0.tgz"
-  integrity sha512-jRfwpN4xKrsEpC+SgrUPY5k0mINYZn7aLrt22I3uQFoumiSgHgsLYgS9f84ntbkvSydH4HiwGuDa2b1XCHaJzw==
-
 "@oxc-parser/binding-wasm32-wasi@0.156.0":
   version "0.156.0"
   resolved "https://registry.npmjs.org/@oxc-parser/binding-wasm32-wasi/-/binding-wasm32-wasi-0.156.0.tgz"
@@ -888,16 +833,6 @@
   version "0.156.0"
   resolved "https://registry.npmjs.org/@oxc-project/types/-/types-0.156.0.tgz"
   integrity sha512-1Duyg48TdJNdyhEB8Xn1L36bT9Pv6GUtlKjHxOys8xkaF/rQq3XJE+bAurSK/AgIz5mGFsb77cn9Pb20+WCScw==
-
-"@parcel/watcher-darwin-arm64@2.6.0":
-  version "2.6.0"
-  resolved "https://registry.npmjs.org/@parcel/watcher-darwin-arm64/-/watcher-darwin-arm64-2.6.0.tgz"
-  integrity sha512-Y3QV0gl7Q1zbfueunkWIERICbEojQFCgpyG7YqOGNFLsckXyI1xu9mAIUpKY9QBYzBtSkN8dBPwd3yiAO9ovMw==
-
-"@parcel/watcher-linux-x64-glibc@2.6.0":
-  version "2.6.0"
-  resolved "https://registry.npmjs.org/@parcel/watcher-linux-x64-glibc/-/watcher-linux-x64-glibc-2.6.0.tgz"
-  integrity sha512-ulGE6x6Oz6iAwg75T8YQSoguBWasniIbX+QWpaYPcCnDOpdWX3k+4xbEYPZVLxOuoJI+svJJPD3sEj8G7lrQ3A==
 
 "@parcel/watcher@^2.4.1", "@parcel/watcher@2.6.0":
   version "2.6.0"
@@ -951,26 +886,6 @@
     minimatch "5.1.9"
     pluralize "8.0.0"
     yaml-ast-parser "0.0.43"
-
-"@rolldown/binding-darwin-arm64@1.2.16":
-  version "1.2.16"
-  resolved "https://registry.npmjs.org/@rolldown/binding-darwin-arm64/-/binding-darwin-arm64-1.2.16.tgz"
-  integrity sha512-qslZrXnKJU4cUpjoAmtAo/KQM9e2IRMlmpig6Zpwj+8KWxW8v+nkAf9216Bsek9lOC1jvg2yCjygCFo2f83msQ==
-
-"@rolldown/binding-darwin-arm64@1.2.19":
-  version "1.2.19"
-  resolved "https://registry.npmjs.org/@rolldown/binding-darwin-arm64/-/binding-darwin-arm64-1.2.19.tgz"
-  integrity sha512-XoMA2pwCKGTQzUjPgtRwkedH4WmXhdIPKT6l6oOxd1PUbNodGI6DcBekgN7EC//+x3pfBYX/qL1gNmZAqivw5g==
-
-"@rolldown/binding-linux-x64-gnu@1.2.16":
-  version "1.2.16"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-x64-gnu/-/binding-linux-x64-gnu-1.2.16.tgz"
-  integrity sha512-TNKhgE3uJTsTzatUSSYt0Kgo+Oa2uSlSjz4r1aEIea7HX6ULBym4fAlYUhG1i6pjNf2njfCUAfKwr6C3E9Xg1w==
-
-"@rolldown/binding-linux-x64-gnu@1.2.19":
-  version "1.2.19"
-  resolved "https://registry.npmjs.org/@rolldown/binding-linux-x64-gnu/-/binding-linux-x64-gnu-1.2.19.tgz"
-  integrity sha512-rm75/9DkHKeU2WnA8w4X94WGYgLlDCFCfkQC+4bguVJmC/jvDRv2B+2wLOYhyE0fVuv7//Ckk39OoOufyCu76Q==
 
 "@rolldown/pluginutils@^1.0.0":
   version "1.1.0"
@@ -1793,11 +1708,6 @@ flru@1.0.2:
   resolved "https://registry.npmjs.org/flru/-/flru-1.0.2.tgz"
   integrity sha512-kWyh8ADvHBFz6ua5xYOPnUroZTT/bwWfrCeL0Wj1dzG4/YOmOcfJ99W8dOVyyynJN35rZ9aCOtHChqQovV7yog==
 
-fsevents@~2.3.3:
-  version "2.3.3"
-  resolved "https://registry.npmjs.org/fsevents/-/fsevents-2.3.3.tgz"
-  integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
-
 gensync@^1.0.0-beta.2:
   version "1.0.0-beta.2"
   resolved "https://registry.npmjs.org/gensync/-/gensync-1.0.0-beta.2.tgz"
@@ -2052,16 +1962,6 @@ levn@^0.4.1:
     prelude-ls "^1.2.1"
     type-check "~0.4.0"
 
-lightningcss-darwin-arm64@1.33.0:
-  version "1.33.0"
-  resolved "https://registry.npmjs.org/lightningcss-darwin-arm64/-/lightningcss-darwin-arm64-1.33.0.tgz"
-  integrity sha512-Sciaz8eenNTKn9b3t7+xr0ipTp9YxKQY4npwQ3mrRuL0BAVHBLyZxofhaKBAVtzmtRZ/zTyo0/to4B1uWG/Djg==
-
-lightningcss-linux-x64-gnu@1.33.0:
-  version "1.33.0"
-  resolved "https://registry.npmjs.org/lightningcss-linux-x64-gnu/-/lightningcss-linux-x64-gnu-1.33.0.tgz"
-  integrity sha512-ar+Ju7LmcN0Jo4FpL4hpFybwNG9/3A/Br5KW2n2jyODg3MEZXaDYADdemoNS+BDNfMgKvylJLj4S5tyRActuAg==
-
 lightningcss@^1.33.0:
   version "1.33.0"
   resolved "https://registry.npmjs.org/lightningcss/-/lightningcss-1.33.0.tgz"
@@ -2089,26 +1989,6 @@ listr2@11.1.0:
     cli-truncate "^6.1.1"
     log-update "^8.0.0"
     wrap-ansi "^10.0.1"
-
-lmdb@3.5.6:
-  version "3.5.6"
-  resolved "https://registry.npmjs.org/lmdb/-/lmdb-3.5.6.tgz"
-  integrity sha512-j3uE8ReKNyUWDjhfEFSJqE/1DLtfTR5Z8yFzVHvBjAk37wNg7HdScjcv8ttPHRvrdgPQMPWxFFI0SsdBzI5lBw==
-  dependencies:
-    "@harperfast/extended-iterable" "^1.0.3"
-    msgpackr "^1.11.2"
-    node-addon-api "^6.1.0"
-    node-gyp-build-optional-packages "5.2.2"
-    ordered-binary "^1.5.3"
-    weak-lru-cache "^1.2.2"
-  optionalDependencies:
-    "@lmdb/lmdb-darwin-arm64" "3.5.6"
-    "@lmdb/lmdb-darwin-x64" "3.5.6"
-    "@lmdb/lmdb-linux-arm" "3.5.6"
-    "@lmdb/lmdb-linux-arm64" "3.5.6"
-    "@lmdb/lmdb-linux-x64" "3.5.6"
-    "@lmdb/lmdb-win32-arm64" "3.5.6"
-    "@lmdb/lmdb-win32-x64" "3.5.6"
 
 locate-path@^6.0.0:
   version "6.0.0"
@@ -2191,27 +2071,6 @@ ms@^2.1.3:
   resolved "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-msgpackr-extract@^3.0.2:
-  version "3.0.7"
-  resolved "https://registry.npmjs.org/msgpackr-extract/-/msgpackr-extract-3.0.7.tgz"
-  integrity sha512-/dOQboWnkR1cjm88XyH/cGSivECGgyQu3814+bNUAq5wACQC8Ya/CViB9WApvWJ5Hya/JJQQmUeBFOZj8MLjGA==
-  dependencies:
-    node-gyp-build-optional-packages "5.2.2"
-  optionalDependencies:
-    "@msgpackr-extract/msgpackr-extract-darwin-arm64" "3.0.7"
-    "@msgpackr-extract/msgpackr-extract-darwin-x64" "3.0.7"
-    "@msgpackr-extract/msgpackr-extract-linux-arm" "3.0.7"
-    "@msgpackr-extract/msgpackr-extract-linux-arm64" "3.0.7"
-    "@msgpackr-extract/msgpackr-extract-linux-x64" "3.0.7"
-    "@msgpackr-extract/msgpackr-extract-win32-x64" "3.0.7"
-
-msgpackr@^1.11.2:
-  version "1.12.1"
-  resolved "https://registry.npmjs.org/msgpackr/-/msgpackr-1.12.1.tgz"
-  integrity sha512-4EUH9tQHnMmEgzW/MdAP0KIfa1T9AF+htl0ffe2n5vb2EKn9y2co8ccpgWko6S52Jy1PQZKwRnx5/KkYjtd9MQ==
-  optionalDependencies:
-    msgpackr-extract "^3.0.2"
-
 mute-stream@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/mute-stream/-/mute-stream-4.0.0.tgz"
@@ -2227,22 +2086,10 @@ natural-compare@^1.4.0:
   resolved "https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
-node-addon-api@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.npmjs.org/node-addon-api/-/node-addon-api-6.1.0.tgz"
-  integrity sha512-+eawOlIgy680F0kBzPUNFhMZGtJ1YmqM6l4+Crf4IkImjYrO/mqPwRMh352g23uIaQKFItcQ64I7KMaJxHgAVA==
-
 node-addon-api@^7.0.0:
   version "7.1.1"
   resolved "https://registry.npmjs.org/node-addon-api/-/node-addon-api-7.1.1.tgz"
   integrity sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==
-
-node-gyp-build-optional-packages@5.2.2:
-  version "5.2.2"
-  resolved "https://registry.npmjs.org/node-gyp-build-optional-packages/-/node-gyp-build-optional-packages-5.2.2.tgz"
-  integrity sha512-s+w+rBWnpTMwSFbaE0UXsRlg7hU4FjekKU4eyAih5T8nJuNZT1nNsskXpxmeqSK9UzkBl6UgRlnKc8hz8IEqOw==
-  dependencies:
-    detect-libc "^2.0.1"
 
 node-releases@^2.0.60:
   version "2.0.63"
@@ -2320,11 +2167,6 @@ ora@9.4.1:
     log-symbols "^7.0.1"
     stdin-discarder "^0.3.2"
     string-width "^8.1.0"
-
-ordered-binary@^1.5.3:
-  version "1.6.3"
-  resolved "https://registry.npmjs.org/ordered-binary/-/ordered-binary-1.6.3.tgz"
-  integrity sha512-Bc8LnA2x4ZHRQ9LjCm/NOdD3+CTQPhGNu8m7/6+ERtiB6Bb/fn7nCySwcmAC+5WCqwelpSAQgo1VX9BGpsC0tQ==
 
 oxc-parser@0.156.0:
   version "0.156.0"
@@ -2570,16 +2412,6 @@ rxjs@^7.4.0, rxjs@~7.8.0, rxjs@7.8.2:
   version "2.1.2"
   resolved "https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
-
-sass-embedded-darwin-arm64@1.104.1:
-  version "1.104.1"
-  resolved "https://registry.npmjs.org/sass-embedded-darwin-arm64/-/sass-embedded-darwin-arm64-1.104.1.tgz"
-  integrity sha512-oatuHzn0NsEg0d9Dcze6CuWUPvuETtMxRK4cv0eRAg7p6R0vHnv5GZRyWG6gEy3nc/ha/L+GtTasWVU82f4jrQ==
-
-sass-embedded-linux-x64@1.104.1:
-  version "1.104.1"
-  resolved "https://registry.npmjs.org/sass-embedded-linux-x64/-/sass-embedded-linux-x64-1.104.1.tgz"
-  integrity sha512-j/sX/yKTx/wJKepC5/ISlR6kPeSuHKThf76D2za5i2VnbHg0MN19jQq3WMorowR3kRghqt6azs3awogG+e7IRA==
 
 sass-embedded@1.104.1:
   version "1.104.1"
@@ -2924,11 +2756,6 @@ w3c-xmlserializer@^6.0.0:
   integrity sha512-4Nsy8K5Tr6SPDH9jhKJOHf7ChDrc1zufZTVSF7x72hwuEXBqxqk9G6cK+K2NRUtB3iELRJqjXb4JPDMBjMTl2Q==
   dependencies:
     xml-name-validator "^5.0.0"
-
-weak-lru-cache@^1.2.2:
-  version "1.2.3"
-  resolved "https://registry.npmjs.org/weak-lru-cache/-/weak-lru-cache-1.2.3.tgz"
-  integrity sha512-pF0uTATIDYJFeEX4GDD5zjOe2jU9EJbBRcpcGPonUcao7eSp2hl6VA0b2Ims9jisMX33x6zgnozvaBCEsXNGPw==
 
 webidl-conversions@^8.0.1:
   version "8.0.1"

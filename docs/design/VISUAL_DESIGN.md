@@ -35,7 +35,7 @@ The five colors already in the stylesheets become the only palette. They describ
 :root {
   --ink: #1c1917;
   --ink-muted: #57534e;
-  --paper: #f6f3ee;
+  --paper: #ffffff;
   --surface: #ffffff;
   --line: #e7e0d6;
   --corner: 0.65rem;

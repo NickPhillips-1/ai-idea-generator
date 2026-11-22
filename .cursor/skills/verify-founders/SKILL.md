@@ -8,7 +8,7 @@ description: >-
 
 # Verify Founders
 
-Founders is the Angular app behind Caddy on port 8080, with the Spring API and Postgres from Docker Compose. Verification uses fixture Census and fixture model output. It signs in with `POST /e2e/login`. It does not submit the password form and it does not call live Census or a paid model.
+Founders is the Angular app behind Caddy on port 8080, with the Spring API and Postgres from Docker Compose. Verification uses fixture Census and fixture model output. The login screen signs in as `nick` with password `password`. Other screens sign in with `POST /e2e/login`. Verification does not call live Census or a paid model.
 
 Launch replaces this Compose project and deletes its database volume. It does not stop other project names. The default origin is `http://127.0.0.1:8080`. A second worktree sets `COMPOSE_PROJECT_NAME`, `FOUNDERS_HTTP_PORT`, and `POSTGRES_HOST_PORT` to values the first stack is not using, and sets `PLAYWRIGHT_BASE_URL` to that HTTP port.
 
@@ -20,7 +20,7 @@ From the repo root:
 sh e2e/scripts/launch.sh
 ```
 
-That sets `FOUNDERSLAB_E2E_LOGIN=true`, `FOUNDERSLAB_E2E_FIXTURES=true`, and `FOUNDER_EMAIL_ALLOWLIST=ada@example.com,grace@example.com`, runs `docker compose down -v`, then `docker compose up --build -d`. The volume reset is required. A leftover questionnaire makes alignment show more than two checkboxes, and the mapped tests expect a fresh database. Launch waits until both of these succeed:
+That sets `FOUNDERSLAB_E2E_LOGIN=true`, `FOUNDERSLAB_E2E_FIXTURES=true`, and `FOUNDER_EMAIL_ALLOWLIST=ada@example.com,grace@example.com`, runs `docker compose down -v`, then `docker compose up --build -d`. The volume reset is required. The mapped test expects a fresh database. Launch waits until both of these succeed:
 
 - `curl -sf http://127.0.0.1:8080/v3/api-docs`
 - `curl -sf http://127.0.0.1:8080/`
@@ -45,16 +45,16 @@ From `e2e/`, with the stack from Launch:
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:8080 \
 PLAYWRIGHT_TRACE=on \
 PLAYWRIGHT_SCREENSHOT=on \
-npx playwright test -g "feature: research"
+npx playwright test -g "feature: login"
 ```
 
-Replace `research` with one feature title from the map: `login`, `questionnaires`, `alignments`, `research`, `opportunities`. One feature is enough for a proof. The title must stay `feature: <name>` so the grep does not run the rest of the suite.
+The title must stay `feature: login` so the grep does not run the rest of the suite.
 
-Preconditions are inside each test. Do not weaken a test to skip a missing questionnaire, alignment, or finding. If a journey cannot start, the failure reason belongs in that feature's Gotchas.
+Preconditions are inside the test. If the journey cannot start, the failure reason belongs in that feature's Gotchas.
 
 ## Evidence
 
-Proof is the user-visible state after the action, not an HTTP 200. The research proof shows the fixture sentence `County Business Patterns lists 100 establishments.` plus the headings Factual summary, AI interpretation, and Unknowns, and the dashboard no longer says `No research findings yet`.
+Proof is the user-visible state after the action, not an HTTP 200. The login proof shows the username and password form for an anonymous visit to `/dashboard`, then `Signed in as nick.` after the password form, and `Signed in as ada@example.com.` after `POST /e2e/login`. The dashboard still says `No research findings yet`.
 
 Artifacts:
 
