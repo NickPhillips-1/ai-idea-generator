@@ -19,8 +19,6 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-founderslab}
       POSTGRES_USER: ${POSTGRES_USER:-founderslab}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-founderslab}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-unset}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-unset}
       FOUNDER_EMAIL_ALLOWLIST: ${FOUNDER_EMAIL_ALLOWLIST:-}
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-}

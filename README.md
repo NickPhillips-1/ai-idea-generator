@@ -14,7 +14,7 @@ This is a modular monolith: one Angular app, one Spring Boot API, one PostgreSQL
 | Backend | Java 21, Spring Boot 4.1.2, package `com.founderslab` |
 | API docs | springdoc OpenAPI at `/v3/api-docs` |
 | Database | PostgreSQL 17, Flyway, UUID primary keys |
-| Auth | Google OAuth2/OIDC, Spring Session JDBC, founder email allowlist |
+| Auth | Username and password, Spring Session JDBC |
 | Session | HttpOnly, Secure, `SameSite=Lax` cookie `FOUNDERSLAB_SESSION` |
 | CSRF | Cookie `XSRF-TOKEN`, header `X-XSRF-TOKEN` |
 | Local runtime | Docker Compose: PostgreSQL, backend, Angular, Caddy on port 8080 |
@@ -30,15 +30,13 @@ cp .env.example .env
 docker compose up
 ```
 
-Open [http://localhost:8080](http://localhost:8080). Caddy serves the Angular app and `/api` on one origin so the session cookie stays first-party.
+Open [http://localhost:8080](http://localhost:8080). Caddy serves the Angular app and `/api` on one origin so the session cookie stays first-party. Sign in as `nick` with password `password`.
 
-Fill these in `.env` before a real Google login. Leave them empty for tests. Never commit `.env`.
+Fill these in `.env` when you need them. Never commit `.env`.
 
 | Name | Purpose |
 | --- | --- |
-| `GOOGLE_CLIENT_ID` | OAuth client id. Server-side. |
-| `GOOGLE_CLIENT_SECRET` | OAuth client secret. Server-side. |
-| `FOUNDER_EMAIL_ALLOWLIST` | Comma-separated founder Google emails. A Google account that is not on this list gets 403. |
+| `FOUNDER_EMAIL_ALLOWLIST` | Comma-separated emails allowed to use `POST /e2e/login`. The password account does not use this list. |
 | `AI_API_KEY` | Model provider credential. Server-side. |
 | `AI_MODEL` | Model name. Server-side. |
 | `CENSUS_API_KEY` | Census API key. Server-side. |
@@ -48,11 +46,9 @@ Fill these in `.env` before a real Google login. Leave them empty for tests. Nev
 | `DATABASE_URL` | JDBC URL. Compose overrides this to the `postgres` service. |
 | `COOKIE_SECURE` | Set `false` for plain HTTP on localhost. Compose defaults it to `false`. |
 
-The Google authorized redirect URI is the app origin plus `/login/oauth2/code/google`.
-
 ## Tests
 
-CI runs both suites on push and pull request. Tests use fixtures. They do not call Google, live Census, or a paid model.
+CI runs both suites on push and pull request. Tests use fixtures. They do not call live Census or a paid model.
 
 ```bash
 # backend (from backend/)

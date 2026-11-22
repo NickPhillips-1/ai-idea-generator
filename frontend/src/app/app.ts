@@ -2,7 +2,7 @@ import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
-import { SessionApi, SessionView } from './core/api/session-api.service';
+import { SessionApi } from './core/api/session-api.service';
 
 function isLoginPath(url: string): boolean {
   const path = url.split('?')[0].split('#')[0];
@@ -19,7 +19,7 @@ export class App implements OnInit {
   private readonly router = inject(Router);
   private readonly sessions = inject(SessionApi);
 
-  protected readonly account = signal<SessionView | null>(null);
+  protected readonly account = this.sessions.account;
   protected readonly sessionReady = signal(false);
   protected readonly pictureFailed = signal(false);
   protected readonly menuOpen = signal(false);
@@ -35,14 +35,8 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     this.sessions.current().subscribe({
-      next: (value) => {
-        this.account.set(value);
-        this.sessionReady.set(true);
-      },
-      error: () => {
-        this.account.set(null);
-        this.sessionReady.set(true);
-      },
+      next: () => this.sessionReady.set(true),
+      error: () => this.sessionReady.set(true),
     });
   }
 
@@ -62,7 +56,6 @@ export class App implements OnInit {
     this.loggingOut.set(true);
     this.sessions.logout().subscribe({
       next: () => {
-        this.account.set(null);
         this.menuOpen.set(false);
         void this.router.navigateByUrl('/login');
       },

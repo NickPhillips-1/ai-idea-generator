@@ -58,7 +58,7 @@ npx ng test --watch=false
 npx ng serve
 ```
 
-`ng serve` proxies `/api`, `/e2e`, `/oauth2`, `/login`, and `/logout` to `http://localhost:8080`.
+`ng serve` proxies `/api`, `/e2e`, and `/logout` to `http://localhost:8080`.
 
 ### Docker Compose v2
 
@@ -79,8 +79,6 @@ Never commit `.env`. Never put these values in Angular environment files. The ex
 Names only. Leave the values empty until you have real credentials outside this repository. This document does not supply any.
 
 ```
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
 FOUNDER_EMAIL_ALLOWLIST=
 AI_API_KEY=
 AI_MODEL=
@@ -93,9 +91,7 @@ DATABASE_URL=
 
 | Name | Purpose |
 | --- | --- |
-| `GOOGLE_CLIENT_ID` | OAuth client id for the Google Cloud client the backend uses at login. Server-side. |
-| `GOOGLE_CLIENT_SECRET` | OAuth client secret for that same client. Server-side. |
-| `FOUNDER_EMAIL_ALLOWLIST` | Comma-separated founder Google email addresses. A Google login is not enough; the account must be on this list. Server-side. |
+| `FOUNDER_EMAIL_ALLOWLIST` | Comma-separated emails allowed to use `POST /e2e/login`. The password account does not use this list. Server-side. |
 | `AI_API_KEY` | Credential for the model provider the backend calls. Server-side. |
 | `AI_MODEL` | Model name the backend should use with that provider. Server-side. |
 | `CENSUS_API_KEY` | Key for the Census API. Server-side. See below. |
@@ -104,11 +100,9 @@ DATABASE_URL=
 | `POSTGRES_PASSWORD` | Database password for that service. |
 | `DATABASE_URL` | JDBC URL the Spring Boot backend uses to reach that database. |
 
-## Google login
+## Password login
 
-Live login needs a Google Cloud OAuth client. Create the client in Google Cloud when you are ready to sign in for real. Set the authorized redirect URI to the app origin plus the Spring Security OAuth2 redirect path. Spring Security's default callback is `/login/oauth2/code/{registrationId}` on that origin. The registration id is `google`. The callback path is `/login/oauth2/code/google`.
-
-Automated tests do not call Google. Until `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` exist, the UI cannot complete a real login. That is expected.
+The app creates one account at startup. The username is `nick` and the password is `password`. Sign in at `/login`. The password is stored as a hash.
 
 ## Census
 
@@ -118,7 +112,7 @@ The first research source is Census County Business Patterns, under `https://api
 
 `docker-compose.yml` runs PostgreSQL, the backend, the Angular dev server, and Caddy on port 8080. The browser should use that proxy so the session cookie and the API share one origin.
 
-Playwright does not use Google, Census, or a paid model. Start PostgreSQL, then the API with `FOUNDERSLAB_E2E_LOGIN=true`, `FOUNDERSLAB_E2E_FIXTURES=true`, `COOKIE_SECURE=false`, and `FOUNDER_EMAIL_ALLOWLIST=ada@example.com,grace@example.com`. Serve the Angular app and run `npx playwright test` from `e2e/`.
+Playwright does not use the password form, Census, or a paid model. Start PostgreSQL, then the API with `FOUNDERSLAB_E2E_LOGIN=true`, `FOUNDERSLAB_E2E_FIXTURES=true`, `COOKIE_SECURE=false`, and `FOUNDER_EMAIL_ALLOWLIST=ada@example.com,grace@example.com`. Serve the Angular app and run `npx playwright test` from `e2e/`.
 
 ## Commands
 

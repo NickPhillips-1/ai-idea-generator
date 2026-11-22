@@ -5,7 +5,9 @@ test('feature: login', async ({ browser }) => {
   const { page, close } = await openFounder(browser);
   await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/login/);
-  await expect(page.getByRole('link', { name: 'Continue with Google' })).toBeVisible();
+  await expect(page.getByLabel('Username')).toBeVisible();
+  await expect(page.getByLabel('Password')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
 
   await signIn(page, 'ada@example.com');
   await page.goto('/dashboard');

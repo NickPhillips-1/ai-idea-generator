@@ -30,7 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,7 +57,6 @@ class ResearchPathTest {
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
-        registry.add("founderslab.auth.email-allowlist", () -> "ada@example.com,grace@example.com");
         registry.add("COOKIE_SECURE", () -> "false");
     }
 
@@ -87,7 +86,7 @@ class ResearchPathTest {
         String graceQuestionnaire = submit("grace@example.com");
 
         String alignmentId = mockMvc.perform(post("/api/v1/alignments/generate")
-                        .with(oauth("ada@example.com"))
+                        .with(founder("ada@example.com"))
                         .with(csrf())
                         .contentType("application/json")
                         .content("{\"questionnaireIds\":[\"" + adaQuestionnaire + "\",\"" + graceQuestionnaire + "\"]}"))
@@ -97,7 +96,7 @@ class ResearchPathTest {
         alignmentId = alignmentId.replaceAll(".*\"id\":\"([^\"]+)\".*", "$1");
 
         String directionId = mockMvc.perform(post("/api/v1/directions")
-                        .with(oauth("ada@example.com"))
+                        .with(founder("ada@example.com"))
                         .with(csrf())
                         .contentType("application/json")
                         .content("{\"alignmentId\":\"" + alignmentId + "\",\"title\":\"Shop fixtures\",\"description\":\"Physical fixtures for small retailers\",\"origin\":\"FOUNDER\"}"))
@@ -106,7 +105,7 @@ class ResearchPathTest {
         directionId = directionId.replaceAll(".*\"id\":\"([^\"]+)\".*", "$1");
 
         mockMvc.perform(post("/api/v1/directions/" + directionId + "/research")
-                        .with(oauth("ada@example.com"))
+                        .with(founder("ada@example.com"))
                         .with(csrf())
                         .header("Idempotency-Key", "path-1")
                         .contentType("application/json")
@@ -116,7 +115,7 @@ class ResearchPathTest {
 
         worker.execute(worker.claim());
 
-        String findings = mockMvc.perform(get("/api/v1/directions/" + directionId + "/findings").with(oauth("ada@example.com")))
+        String findings = mockMvc.perform(get("/api/v1/directions/" + directionId + "/findings").with(founder("ada@example.com")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].verificationStatus").value("UNREVIEWED"))
                 .andExpect(jsonPath("$.items[0].factualSummary").value("County Business Patterns lists 100 establishments."))
@@ -126,17 +125,17 @@ class ResearchPathTest {
                 .andReturn().getResponse().getContentAsString();
         String findingId = com.jayway.jsonpath.JsonPath.read(findings, "$.items[0].id");
         String jobId = com.jayway.jsonpath.JsonPath.read(
-                mockMvc.perform(get("/api/v1/directions/" + directionId + "/findings").with(oauth("ada@example.com")))
+                mockMvc.perform(get("/api/v1/directions/" + directionId + "/findings").with(founder("ada@example.com")))
                         .andReturn().getResponse().getContentAsString(),
                 "$.items[0].id"
         );
         org.junit.jupiter.api.Assertions.assertEquals(findingId, jobId);
 
-        mockMvc.perform(get("/api/v1/research-jobs/" + java.util.UUID.randomUUID()).with(oauth("stranger@example.com")))
+        mockMvc.perform(get("/api/v1/research-jobs/" + java.util.UUID.randomUUID()).with(founder("stranger@example.com")))
                 .andExpect(status().isForbidden());
 
         String opportunityId = com.jayway.jsonpath.JsonPath.read(mockMvc.perform(post("/api/v1/opportunities")
-                        .with(oauth("ada@example.com"))
+                        .with(founder("ada@example.com"))
                         .with(csrf())
                         .contentType("application/json")
                         .content("{\"title\":\"Shop fixtures\",\"customerProblem\":\"Retailers need a sturdier fixture\",\"targetCustomer\":\"Independent hardware stores\",\"findingIds\":[\"" + findingId + "\"]}"))
@@ -147,7 +146,7 @@ class ResearchPathTest {
                 .andReturn().getResponse().getContentAsString(), "$.id");
 
         mockMvc.perform(post("/api/v1/opportunities/" + opportunityId + "/products")
-                        .with(oauth("ada@example.com"))
+                        .with(founder("ada@example.com"))
                         .with(csrf())
                         .contentType("application/json")
                         .content("{\"description\":\"A steel shelf bracket\",\"targetBuyers\":\"Hardware stores\",\"differentiation\":\"Heavier gauge than the common import\",\"estimatedCosts\":\"Shop time and steel, not a verified unit cost\",\"feasibility\":\"A small shop can cut and weld it. This is a note, not a verified study.\"}"))
@@ -155,29 +154,29 @@ class ResearchPathTest {
                 .andExpect(jsonPath("$.businessType").value("PHYSICAL_PRODUCT"));
 
         mockMvc.perform(post("/api/v1/opportunities/" + opportunityId + "/decisions")
-                        .with(oauth("ada@example.com"))
+                        .with(founder("ada@example.com"))
                         .with(csrf())
                         .contentType("application/json")
                         .content("{\"decision\":\"ADVANCE\",\"rationale\":\"The Census count is only market structure. Customer pain is still unknown.\"}"))
                 .andExpect(status().isCreated());
         mockMvc.perform(post("/api/v1/opportunities/" + opportunityId + "/decisions")
-                        .with(oauth("grace@example.com"))
+                        .with(founder("grace@example.com"))
                         .with(csrf())
                         .contentType("application/json")
                         .content("{\"decision\":\"INVESTIGATE\",\"rationale\":\"We still need a source that describes the buyer.\"}"))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/v1/opportunities/" + opportunityId).with(oauth("ada@example.com")))
+        mockMvc.perform(get("/api/v1/opportunities/" + opportunityId).with(founder("ada@example.com")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DRAFT"));
-        mockMvc.perform(get("/api/v1/opportunities/" + opportunityId + "/decisions").with(oauth("ada@example.com")))
+        mockMvc.perform(get("/api/v1/opportunities/" + opportunityId + "/decisions").with(founder("ada@example.com")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(2))
                 .andExpect(jsonPath("$.items[0].decision").value("ADVANCE"))
                 .andExpect(jsonPath("$.items[1].decision").value("INVESTIGATE"));
 
         mockMvc.perform(post("/api/v1/directions/" + directionId + "/research")
-                        .with(oauth("ada@example.com"))
+                        .with(founder("ada@example.com"))
                         .with(csrf())
                         .header("Idempotency-Key", "path-1")
                         .contentType("application/json")
@@ -186,7 +185,7 @@ class ResearchPathTest {
                 .andExpect(jsonPath("$.status").value("SUCCEEDED"));
 
         mockMvc.perform(post("/api/v1/directions/" + directionId + "/research")
-                        .with(oauth("ada@example.com"))
+                        .with(founder("ada@example.com"))
                         .with(csrf())
                         .header("Idempotency-Key", "path-2")
                         .contentType("application/json")
@@ -198,7 +197,7 @@ class ResearchPathTest {
 
     private String submit(String email) throws Exception {
         String body = mockMvc.perform(post("/api/v1/questionnaires")
-                        .with(oauth(email))
+                        .with(founder(email))
                         .with(csrf())
                         .contentType("application/json")
                         .content("{\"templateId\":\"" + TEMPLATE_ID + "\",\"answers\":{\"interests\":\"retail fixtures\",\"skills\":\"fabrication\",\"resources\":\"a small shop\",\"goals\":\"a physical product we can make\"}}"))
@@ -207,11 +206,8 @@ class ResearchPathTest {
         return body.replaceAll(".*\"id\":\"([^\"]+)\".*", "$1");
     }
 
-    private static org.springframework.test.web.servlet.request.RequestPostProcessor oauth(String email) {
-        return oauth2Login().attributes(attrs -> {
-            attrs.put("email", email);
-            attrs.put("sub", email);
-        });
+    private static org.springframework.test.web.servlet.request.RequestPostProcessor founder(String email) {
+        return user(email);
     }
 
     @TestConfiguration

@@ -86,8 +86,6 @@ jobs:
           DATABASE_URL: jdbc:postgresql://localhost:5432/founderslab
           POSTGRES_USER: founderslab
           POSTGRES_PASSWORD: founderslab
-          GOOGLE_CLIENT_ID: unset
-          GOOGLE_CLIENT_SECRET: unset
           FOUNDER_EMAIL_ALLOWLIST: ada@example.com,grace@example.com
           COOKIE_SECURE: "false"
           FOUNDERSLAB_E2E_LOGIN: "true"

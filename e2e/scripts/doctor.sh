@@ -17,7 +17,7 @@ fi
 
 code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$base/e2e/login?email=ada@example.com")
 if [ "$code" = "404" ]; then
-  echo "doctor: POST /e2e/login returned 404. Restart with FOUNDERSLAB_E2E_LOGIN=true. This is the Google stack, not the verification stack." >&2
+  echo "doctor: POST /e2e/login returned 404. Restart with FOUNDERSLAB_E2E_LOGIN=true." >&2
   exit 1
 fi
 

@@ -28,7 +28,7 @@ The Angular client must be generated from the springdoc document that matches th
 
 ## Authentication
 
-Spring Security is authoritative for authentication and authorization. This contract does not define a JSON login resource. Establishing a session is the Spring Security Google OAuth2/OIDC login flow, which is outside `/api/v1`.
+Spring Security is authoritative for authentication and authorization. A founder signs in with a username and password. The login request is form-encoded, not JSON, and it is the one `/api/v1` route that is not a JSON resource.
 
 Session cookie:
 
@@ -50,11 +50,11 @@ Authorization, evaluated by Spring Security:
 | Condition | Status |
 | --- | --- |
 | No session | `401` |
-| The Google account is not on `FOUNDER_EMAIL_ALLOWLIST` | `403` |
-| The Google account is not a `workspace_member` | `403` |
+| The username or password is wrong | `401` |
+| The account is not a `workspace_member` | `403` |
 | Mutating request without a valid `X-XSRF-TOKEN` | `403` |
 
-`401` means there is no session. `403` means a session exists and Spring Security rejected the caller or the CSRF token. Allowlist rejection and membership rejection both use `403`. Clients do not send a bearer token. A bearer token is not a substitute for the session cookie.
+`401` means there is no session, or the username and password did not match. `403` means a session exists and Spring Security rejected the caller or the CSRF token. Clients do not send a bearer token. A bearer token is not a substitute for the session cookie.
 
 ## Status codes
 
@@ -63,10 +63,10 @@ Authorization, evaluated by Spring Security:
 | `200` | The read succeeded, or an idempotency replay returned the job that already existed. |
 | `201` | A resource was created. The body is that new resource. `Location` is the GET path of the new resource. |
 | `202` | A new research job was accepted. Used only when `POST /api/v1/directions/{id}/research` creates a job. |
-| `204` | Logout succeeded. No body. |
+| `204` | Login or logout succeeded. No body. |
 | `400` | The request is malformed: bad JSON, a missing `Idempotency-Key`, a query value outside its range, or a value outside an enum. |
-| `401` | No session. |
-| `403` | The session is not on `FOUNDER_EMAIL_ALLOWLIST`, the account is not a `workspace_member`, or the CSRF token is missing or invalid. |
+| `401` | No session, or the username and password did not match. |
+| `403` | The account is not a `workspace_member`, or the CSRF token is missing or invalid. |
 | `404` | The resource is missing, or it is not visible in the caller's workspace. |
 | `409` | Optimistic-lock version conflict, idempotency key reused with a different body, or a different key while a research job for that direction is `RUNNING`. |
 | `422` | The JSON is well formed and fails a domain rule. Questionnaire answers do not satisfy the template, or alignment generation represents fewer than two distinct founders. |
@@ -172,13 +172,21 @@ Requires a session. No CSRF header.
 | Field | Type | Rule |
 | --- | --- | --- |
 | `founderId` | uuid | The caller's founder id |
-| `email` | string | The Google account email on the session |
+| `email` | string | The founder's email |
 | `name` | string | Display name |
 | `workspaceId` | uuid | The caller's workspace |
 | `role` | string | The caller's `workspace_member` role in that workspace |
-| `pictureUrl` | string | Omitted when the Google account has no https profile image. Otherwise that image URL |
+| `pictureUrl` | string | Omitted. Password login does not supply a profile image |
 
 `401` when there is no session. The error body is the object in [Error body](#error-body).
+
+### `POST /api/v1/login`
+
+Spring Security form login. Body is `application/x-www-form-urlencoded` with fields `username` and `password`. CSRF header required. Credentials included.
+
+`204` with no body. The response sets the session cookie.
+
+`401` with the error body when the username or password does not match an account. A missing or invalid CSRF token is `403`.
 
 ### `POST /logout`
 
@@ -624,5 +632,5 @@ Implemented differences from the tables above:
 - `GET /api/v1/founders`, `GET /api/v1/alignments`, `GET /api/v1/directions`, and `PATCH /api/v1/directions/{id}` are not implemented.
 - Collection `limit`, `offset`, and `sort` query parameters are not validated yet. The implemented collections return the matching rows for the caller's workspace.
 - `tokenUsage` and `estimatedCost` stay null until a provider reports them. The fixture path does not invent token counts.
-- `POST /e2e/login` exists only when `FOUNDERSLAB_E2E_LOGIN=true`. It is how Playwright signs in without Google. It is absent when that flag is false.
+- `POST /e2e/login` exists only when `FOUNDERSLAB_E2E_LOGIN=true`. It is how Playwright signs in without the password form. It is absent when that flag is false.
 - `AIProvider` throws when `AI_API_KEY` is unset. `FOUNDERSLAB_E2E_FIXTURES=true` supplies fixture Census and model adapters so tests and Playwright do not call live Census or a paid model. Spring AI is not on the classpath.

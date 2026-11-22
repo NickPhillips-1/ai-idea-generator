@@ -26,7 +26,7 @@ A bug fix names the check that fails on the parent and passes on the change.
 
 Regenerate `frontend/src/app/core/api/generated/schema.ts` with `npm run generate:api` from `frontend/` while the API is serving `/v3/api-docs`. Do not hand-edit that file and do not hand-copy DTOs.
 
-Secrets stay in the environment. Tests and Playwright use fixtures (`FOUNDERSLAB_E2E_FIXTURES=true`). Do not call live Census or a paid model. Verification signs in with `POST /e2e/login` when `FOUNDERSLAB_E2E_LOGIN=true`. It does not complete Google OAuth.
+Secrets stay in the environment. Tests and Playwright use fixtures (`FOUNDERSLAB_E2E_FIXTURES=true`). Do not call live Census or a paid model. Verification signs in with `POST /e2e/login` when `FOUNDERSLAB_E2E_LOGIN=true`. It does not submit the password form.
 
 ## pstack
 

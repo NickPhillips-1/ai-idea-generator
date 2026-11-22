@@ -8,4 +8,6 @@ import java.util.UUID;
 public interface FounderRepository extends JpaRepository<Founder, UUID> {
 
     Optional<Founder> findByEmailIgnoreCase(String email);
+
+    Optional<Founder> findByUsername(String username);
 }
