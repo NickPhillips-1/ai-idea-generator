@@ -1,15 +1,85 @@
-<section>
-  <h1>Dashboard</h1>
-  @if (session(); as current) {
-    <p>Signed in as {{ current.name }}.</p>
-  } @else if (loadError()) {
-    <p>The session could not be loaded.</p>
-  } @else {
-    <p>Loading the session.</p>
-  }
-  @if (findings().length) {
-    <app-finding-review [findings]="findings()" />
-  } @else {
-    <p class="note">No research findings yet. A finding will appear here only after a research job stores one.</p>
-  }
-</section>
+<div class="home">
+  <div class="column">
+    <ul class="questionnaires" aria-label="Questionnaires">
+      @for (item of visibleQuestionnaires(); track item.id) {
+        <li>
+          <button
+            type="button"
+            (click)="selectQuestionnaire(item.id)"
+            [attr.aria-pressed]="selectedId() === item.id"
+          >
+            <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 3.2h6.1L18.8 9v10.2A1.6 1.6 0 0 1 17.2 20.8H7A1.6 1.6 0 0 1 5.4 19.2V4.8A1.6 1.6 0 0 1 7 3.2z" fill="#fff" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+              <path d="M13 3.3V9h5.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+              <path d="M8.2 13h7.6M8.2 16.2h5.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+            </svg>
+            <span class="file-name">{{ item.name }}</span>
+            <span class="file-kind">md</span>
+          </button>
+        </li>
+      } @empty {
+        <li class="empty">No matching questionnaire.</li>
+      }
+    </ul>
+
+    <h1>What idea should we research?</h1>
+
+    <div class="composer">
+      <label class="prompt">
+        <span class="sr">Search questionnaires</span>
+        <textarea
+          rows="1"
+          placeholder="Work with Founders"
+          [value]="draft()"
+          (input)="onDraft($event)"
+        ></textarea>
+      </label>
+      <div class="tools">
+        <div class="tools-end">
+          <button type="button" class="send" aria-label="Send">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 19V5M7 10l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (selected(); as item) {
+      <dialog class="popup" #popup aria-labelledby="questionnaire-title" (click)="onBackdrop($event)" (close)="closeQuestionnaire()">
+        <div class="popup-bar">
+          <h2 id="questionnaire-title">{{ item.name }}</h2>
+          <button type="button" class="close" aria-label="Close" (click)="closeQuestionnaire()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        @if (selectedCopy(); as copy) {
+          @if (copy.status === 'loading') {
+            <p class="note">Loading {{ item.name }}'s questionnaire.</p>
+          } @else if (copy.status === 'missing') {
+            <p class="note">{{ item.name }}'s questionnaire could not be loaded.</p>
+          } @else if (!copy.text.trim()) {
+            <p class="note">No answers yet.</p>
+          } @else {
+            <pre class="answers">{{ copy.text }}</pre>
+          }
+        }
+      </dialog>
+    }
+
+    @if (findings().length) {
+      <div class="findings">
+        <app-finding-review [findings]="findings()" />
+      </div>
+    }
+    @if (session(); as current) {
+      <p class="session">Signed in as {{ current.name }}.</p>
+    } @else if (loadError()) {
+      <p class="session">The session could not be loaded.</p>
+    } @else {
+      <p class="session">Loading the session.</p>
+    }
+  </div>
+</div>

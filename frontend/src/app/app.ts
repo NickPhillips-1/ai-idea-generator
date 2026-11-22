@@ -9,11 +9,19 @@ function isLoginPath(url: string): boolean {
   return path === '/login' || path.startsWith('/login/');
 }
 
+function isDashboardPath(url: string): boolean {
+  const path = url.split('?')[0].split('#')[0];
+  return path === '/' || path === '' || path === '/dashboard';
+}
+
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink],
   templateUrl: './app.html',
   styleUrl: './app.css',
+  host: {
+    '[class.stage]': 'stage()',
+  },
 })
 export class App implements OnInit {
   private readonly router = inject(Router);
@@ -31,6 +39,14 @@ export class App implements OnInit {
       map(() => !isLoginPath(this.router.url)),
     ),
     { initialValue: !isLoginPath(globalThis.location.pathname) },
+  );
+
+  protected readonly stage = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => isDashboardPath(this.router.url)),
+    ),
+    { initialValue: isDashboardPath(globalThis.location.pathname) },
   );
 
   ngOnInit(): void {
