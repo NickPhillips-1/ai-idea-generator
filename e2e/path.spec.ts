@@ -1,44 +1,46 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { alignTwoFounders, openFounder, saveDirection, signIn, startCensusResearch, submitQuestionnaire } from './support';
 
-test('anonymous visitors stop at login, then two founders review a fixture finding', async ({ browser }) => {
-  const adaContext = await browser.newContext();
-  const graceContext = await browser.newContext();
-  const ada = await adaContext.newPage();
-  const grace = await graceContext.newPage();
+test('feature: login', async ({ browser }) => {
+  const { page, close } = await openFounder(browser);
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByRole('link', { name: 'Continue with Google' })).toBeVisible();
 
-  await ada.goto('/dashboard');
-  await expect(ada).toHaveURL(/\/login/);
-  await expect(ada.getByRole('link', { name: 'Continue with Google' })).toBeVisible();
+  await signIn(page, 'ada@example.com');
+  await page.goto('/dashboard');
+  await expect(page.getByText('Signed in as ada@example.com.')).toBeVisible();
+  await close();
+});
 
-  await signIn(ada, 'ada@example.com');
-  await signIn(grace, 'grace@example.com');
-  await submitQuestionnaire(ada, 'retail fixtures', 'fabrication', 'a small shop', 'a physical product');
-  await submitQuestionnaire(grace, 'store displays', 'welding', 'steel stock', 'something we can make');
+test('feature: questionnaires', async ({ browser }) => {
+  const { page, close } = await openFounder(browser);
+  await signIn(page, 'ada@example.com');
+  await submitQuestionnaire(page, 'retail fixtures', 'fabrication', 'a small shop', 'a physical product');
+  await expect(page.getByRole('link', { name: 'Continue to alignment' })).toBeVisible();
+  await close();
+});
 
-  await ada.goto('/alignments');
-  await expect(ada.getByRole('checkbox')).toHaveCount(2);
-  for (const box of await ada.getByRole('checkbox').all()) {
-    await box.check();
-  }
-  await ada.getByRole('button', { name: 'Generate alignment' }).click();
-  await expect(ada.getByRole('heading', { name: 'AI explanation' })).toBeVisible();
-  await ada.getByRole('link', { name: 'Continue to a research direction' }).click();
+test('feature: alignments', async ({ browser }) => {
+  const { ada, close } = await alignTwoFounders(browser);
+  await expect(ada.getByText("This is the model's reading, not a verified fact.")).toBeVisible();
+  await close();
+});
 
-  await ada.getByLabel('Title').fill('Shop fixtures');
-  await ada.getByLabel('Description').fill('Physical fixtures for small retailers');
-  await ada.getByRole('button', { name: 'Save direction' }).click();
-  await ada.getByRole('link', { name: 'Start research' }).click();
-  await ada.getByRole('button', { name: 'Start Census research' }).click();
-  await expect(ada.getByText('County Business Patterns lists 100 establishments.')).toBeVisible();
-  await expect(ada.getByRole('heading', { name: 'Factual summary' })).toBeVisible();
-  await expect(ada.getByRole('heading', { name: 'AI interpretation' })).toBeVisible();
-  await expect(ada.getByRole('heading', { name: 'Unknowns' })).toBeVisible();
-  await expect(ada.getByText('cannot support willingness to pay')).toBeVisible();
-
+test('feature: research', async ({ browser }) => {
+  const { ada, close } = await alignTwoFounders(browser);
+  await saveDirection(ada);
+  await startCensusResearch(ada);
   await ada.getByRole('link', { name: 'Open the dashboard review' }).click();
   await expect(ada.getByText('County Business Patterns lists 100 establishments.')).toBeVisible();
   await expect(ada.getByText('No research findings yet')).toHaveCount(0);
+  await close();
+});
 
+test('feature: opportunities', async ({ browser }) => {
+  const { ada, close } = await alignTwoFounders(browser);
+  await saveDirection(ada);
+  await startCensusResearch(ada);
   await ada.goto('/opportunities');
   await expect(ada.getByRole('heading', { name: 'Factual summary' })).toBeVisible();
   await ada.getByLabel('Title').fill('Shop fixtures');
@@ -54,33 +56,5 @@ test('anonymous visitors stop at login, then two founders review a fixture findi
   await ada.getByLabel('Rationale').fill('Census does not prove customer pain.');
   await ada.getByRole('button', { name: 'ADVANCE' }).click();
   await expect(ada.getByText('Opportunity status: DRAFT')).toBeVisible();
-
-  await adaContext.close();
-  await graceContext.close();
+  await close();
 });
-
-async function signIn(page: Page, email: string): Promise<void> {
-  await page.goto('/login');
-  await page.request.get('/api/v1/session');
-  const token = (await page.context().cookies()).find((cookie) => cookie.name === 'XSRF-TOKEN')?.value ?? '';
-  const response = await page.request.post(`/e2e/login?email=${encodeURIComponent(email)}`, {
-    headers: { 'X-XSRF-TOKEN': token },
-  });
-  expect(response.status()).toBe(204);
-}
-
-async function submitQuestionnaire(
-  page: Page,
-  interests: string,
-  skills: string,
-  resources: string,
-  goals: string,
-): Promise<void> {
-  await page.goto('/questionnaires');
-  await page.getByLabel('Interests').fill(interests);
-  await page.getByLabel('Skills').fill(skills);
-  await page.getByLabel('Resources').fill(resources);
-  await page.getByLabel('Goals').fill(goals);
-  await page.getByRole('button', { name: 'Submit questionnaire' }).click();
-  await expect(page.getByText(/Submitted questionnaire/)).toBeVisible();
-}

@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { switchMap, takeWhile, tap, timer } from 'rxjs';
 import { LabApi, Schemas } from '../../core/api/lab-api.service';
 import { pathState } from '../../core/research/path-state';
+import { pollJob } from '../../core/research/poll-job';
 import { shouldPoll } from '../../core/research/poll-status';
 import { FindingReview } from '../findings/finding-review';
 
@@ -43,19 +43,14 @@ export class ResearchPage implements OnInit {
   }
 
   private watch(jobId: string, directionId: string): void {
-    timer(0, 2000)
-      .pipe(
-        switchMap(() => this.lab.job(jobId)),
-        tap((job) => this.status.set(job.status ?? null)),
-        takeWhile((job) => shouldPoll(job.status), true),
-      )
-      .subscribe({
-        next: (job) => {
-          if (!shouldPoll(job.status)) {
-            this.lab.findings(directionId).subscribe((page) => this.findings.set(page.items ?? []));
-          }
-        },
-        error: () => this.errorMessage.set('The research job could not be read.'),
-      });
+    pollJob(this.lab, jobId).subscribe({
+      next: (job) => {
+        this.status.set(job.status ?? null);
+        if (!shouldPoll(job.status)) {
+          this.lab.findings(directionId).subscribe((page) => this.findings.set(page.items ?? []));
+        }
+      },
+      error: () => this.errorMessage.set('The research job could not be read.'),
+    });
   }
 }

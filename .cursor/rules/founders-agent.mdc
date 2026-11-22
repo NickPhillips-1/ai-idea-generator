@@ -1,0 +1,17 @@
+---
+description: Where Founders code belongs and which checks prove a change
+alwaysApply: true
+---
+
+# Founders
+
+Angular 22, Spring Boot (`com.founderslab`), Playwright. Not Electron. [docs/architecture/CURRENT_STATE.md](docs/architecture/CURRENT_STATE.md) is a historical empty-repo audit. Follow [AGENTS.md](AGENTS.md) and the live tree.
+
+- Features call `LabApi` or `SessionApi`. Do not import `HttpClient` in `frontend/src/app/features/`.
+- Poll a research job with `pollJob` from `core/research/poll-job.ts`. Do not copy `timer(0, 2000)` into a feature.
+- A feature may import `findings/finding-review` only. Other features meet at the router and the API.
+- Change [docs/api/API_CONTRACTS.md](docs/api/API_CONTRACTS.md) before a new field. Refresh types with `npm run generate:api` in `frontend/`. Do not hand-edit `schema.ts`.
+- Controllers do not import `integration.sources` or `integration.ai`. Use `ResearchSourceAdapter`, not `CensusCountyBusinessPatternsAdapter`.
+- Tests and Playwright use fixtures. Do not call live Census or a paid model.
+- UI work is unfinished until `.cursor/skills/verify-founders` has driven that feature.
+- `/poteto-mode` for non-trivial work. `/correct` turns a repeated mistake into a lint or test. `/reflect` updates a skill when the lesson is workflow.
