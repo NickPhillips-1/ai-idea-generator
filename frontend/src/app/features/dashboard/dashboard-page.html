@@ -74,6 +74,29 @@
           <p class="empty">No chats yet.</p>
         </section>
       </div>
+
+      <div class="sidebar-foot">
+        <button
+          type="button"
+          class="theme"
+          (click)="toggleTheme()"
+          [attr.aria-pressed]="theme() === 'dark'"
+          [attr.aria-label]="theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
+          @if (theme() === 'dark') {
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="3.25" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M5.8 5.8l1.3 1.3M16.9 16.9l1.3 1.3M18.2 5.8l-1.3 1.3M7.1 16.9l-1.3 1.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            Light mode
+          } @else {
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M16.6 13.4A6.4 6.4 0 0 1 10.6 5.1 6.6 6.6 0 1 0 16.6 13.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+            </svg>
+            Dark mode
+          }
+        </button>
+      </div>
     </aside>
   </div>
 

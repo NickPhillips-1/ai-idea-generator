@@ -34,6 +34,8 @@ founderslab:
   research:
     max-jobs-per-hour: ${FOUNDERSLAB_MAX_JOBS_PER_HOUR:30}
     max-estimated-cost: ${FOUNDERSLAB_MAX_ESTIMATED_COST:25}
+  rate-limit:
+    requests-per-minute: ${FOUNDERSLAB_RATE_LIMIT_PER_MINUTE:600}
 
 springdoc:
   api-docs:

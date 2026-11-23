@@ -5,11 +5,13 @@ import com.founderslab.founder.FounderRepository;
 import com.founderslab.founder.WorkspaceMember;
 import com.founderslab.founder.WorkspaceMemberId;
 import com.founderslab.founder.WorkspaceMemberRepository;
+import com.founderslab.security.GlobalRateLimitFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.mock.web.MockHttpSession;
@@ -59,6 +61,15 @@ class SessionSecurityTest {
 
     @Autowired
     private WorkspaceMemberRepository members;
+
+    @Autowired
+    private SecurityFilterChain securityFilterChain;
+
+    @Test
+    void apiRequestsPassThroughTheGlobalRateLimit() {
+        org.junit.jupiter.api.Assertions.assertTrue(securityFilterChain.getFilters().stream()
+                .anyMatch(filter -> filter instanceof GlobalRateLimitFilter));
+    }
 
     @Test
     void flywayCreatesTheFoundationSchema() {

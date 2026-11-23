@@ -21,8 +21,14 @@ describe('DashboardPage', () => {
         },
       ],
     }).compileComponents();
+    localStorage.setItem('founders-theme', 'light');
     fixture = TestBed.createComponent(DashboardPage);
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    localStorage.removeItem('founders-theme');
+    delete document.documentElement.dataset['theme'];
   });
 
   it('rotates example ideas while the search is empty', () => {
@@ -123,5 +129,33 @@ describe('DashboardPage', () => {
     expect(slot().classList.contains('is-closed')).toBe(false);
     expect(root.querySelector('aside')?.hasAttribute('aria-hidden')).toBe(false);
     expect(root.querySelector('[aria-label="Open sidebar"]')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('switches color mode from the bottom of the sidebar', () => {
+    const root = fixture.nativeElement as HTMLElement;
+    const aside = root.querySelector('aside') as HTMLElement;
+    const foot = root.querySelector('.sidebar-foot') as HTMLElement;
+    const button = foot.querySelector('button') as HTMLButtonElement;
+
+    expect(aside.lastElementChild).toBe(foot);
+    expect(button.textContent).toContain('Dark mode');
+    expect(button.getAttribute('aria-label')).toBe('Switch to dark mode');
+    expect(document.documentElement.dataset['theme']).toBe('light');
+
+    button.click();
+    fixture.detectChanges();
+
+    expect(document.documentElement.dataset['theme']).toBe('dark');
+    expect(localStorage.getItem('founders-theme')).toBe('dark');
+    expect(button.textContent).toContain('Light mode');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    expect(button.getAttribute('aria-label')).toBe('Switch to light mode');
+
+    button.click();
+    fixture.detectChanges();
+
+    expect(document.documentElement.dataset['theme']).toBe('light');
+    expect(button.textContent).toContain('Dark mode');
+    expect(button.getAttribute('aria-pressed')).toBe('false');
   });
 });
