@@ -4,7 +4,14 @@
   min-width: 0;
   min-height: 0;
   color: var(--ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Helvetica,
+    Arial,
+    sans-serif;
 }
 
 .home {
@@ -18,12 +25,17 @@
   overflow: hidden;
 }
 
+.home.is-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
 .sidebar-slot {
   display: flex;
   position: relative;
   z-index: 2;
   flex: none;
-  width: calc(16.5rem + 1rem);
+  width: calc(var(--sidebar-width, 16.5rem) + 1rem);
   min-width: 0;
   min-height: 0;
   padding: 0.5rem;
@@ -31,6 +43,10 @@
   transition:
     width 240ms cubic-bezier(0.2, 0, 0, 1),
     padding 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.sidebar-slot.is-resizing {
+  transition: none;
 }
 
 .sidebar-slot.is-closed {
@@ -43,8 +59,8 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  width: 16.5rem;
-  min-width: 16.5rem;
+  width: var(--sidebar-width, 16.5rem);
+  min-width: var(--sidebar-width, 16.5rem);
   min-height: 0;
   padding: 0.7rem 0.55rem 0.9rem;
   padding-top: max(0.7rem, env(safe-area-inset-top));
@@ -60,6 +76,47 @@
 
 .sidebar-slot.is-closed .sidebar {
   transform: translateX(-100%);
+}
+
+.sidebar-resize {
+  position: absolute;
+  z-index: 1;
+  top: calc(0.5rem + 1rem);
+  right: 0.5rem;
+  bottom: calc(0.5rem + 1rem);
+  width: 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+
+.sidebar-resize::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 1px;
+  border-radius: 1px;
+  background: var(--panel-line);
+  opacity: 0.5;
+  transform: none;
+  pointer-events: none;
+  transition:
+    opacity 120ms ease,
+    background 120ms ease;
+}
+
+.sidebar-resize:hover::after,
+.sidebar-resize:focus-visible::after,
+.sidebar-slot.is-resizing .sidebar-resize::after {
+  opacity: 1;
+  background: color-mix(in srgb, #ffffff 88%, var(--field-line-focus));
 }
 
 .sidebar button,
@@ -105,6 +162,7 @@
 .icon-btn svg,
 .new-chat svg,
 .theme svg,
+.delete-chat svg,
 .file {
   width: 1.05rem;
   height: 1.05rem;
@@ -177,7 +235,7 @@
 }
 
 .sidebar h2 {
-  margin: 0.9rem 0 0.2rem;
+  margin: 0.9rem 0 0.5rem;
   padding: 0 0.55rem;
   color: var(--muted);
   font-family: inherit;
@@ -188,6 +246,9 @@
 }
 
 .sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -198,7 +259,7 @@
   align-items: center;
   gap: 0.65rem;
   width: 100%;
-  padding: 0.42rem 0.55rem;
+  padding: 0.5rem 0.65rem;
   border-radius: 0.65rem;
   font-size: 0.92rem;
   line-height: 1.3;
@@ -209,6 +270,88 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sidebar-list .recent {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  border-radius: 0.65rem;
+}
+
+.sidebar-list .recent:hover,
+.sidebar-list .recent:has(button[aria-pressed='true']) {
+  background: var(--hover);
+}
+
+.sidebar-list .recent > button:not(.delete-chat) {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+}
+
+.sidebar-list .recent > button:hover,
+.sidebar-list .recent > button[aria-pressed='true'] {
+  background: transparent;
+}
+
+.sidebar-list .delete-chat {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 0.45rem;
+  color: var(--muted);
+}
+
+.sidebar-list .delete-chat:hover,
+.sidebar-list .delete-chat:focus-visible {
+  color: var(--ink);
+  background: transparent;
+}
+
+.sidebar-list .recent.is-confirming {
+  background: var(--hover);
+}
+
+.sidebar-list .confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.35rem 0.5rem 0.65rem;
+}
+
+.sidebar-list .confirm p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-list .confirm button {
+  flex: none;
+  width: auto;
+  height: calc(0.92rem * 1.3);
+  margin: 0;
+  padding: 0 0.5rem;
+  border-radius: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.sidebar-list .confirm .confirm-yes {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .file {
@@ -265,6 +408,8 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  container-type: inline-size;
+  container-name: canvas;
 }
 
 .canvas-bar {
@@ -291,16 +436,12 @@
   flex: 1 1 auto;
   flex-direction: column;
   justify-content: safe center;
-  width: min(46rem, 100%);
+  width: 100%;
   min-height: 0;
-  margin: 0 auto;
+  margin: 0;
   overflow: auto;
-  padding: 0.5rem clamp(0.75rem, 2.5vw, 1.25rem) max(8vh, env(safe-area-inset-bottom));
-  padding-right: max(clamp(0.75rem, 2.5vw, 1.25rem), env(safe-area-inset-right));
-}
-
-.sidebar-slot.is-closed + .canvas .stage-body {
-  padding-left: max(clamp(0.75rem, 2.5vw, 1.25rem), env(safe-area-inset-left));
+  padding-top: 0.5rem;
+  padding-bottom: max(8vh, env(safe-area-inset-bottom));
 }
 
 .has-thread .stage-body {
@@ -311,15 +452,167 @@
 
 .thread {
   flex: 1 1 auto;
+  width: 100%;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
   overscroll-behavior: contain;
-  padding-bottom: 0.75rem;
+  scrollbar-width: none;
+}
+
+.thread::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.rail {
+  position: absolute;
+  z-index: 4;
+  top: var(--rail-top, 3.25rem);
+  right: 0;
+  width: 14px;
+  height: var(--rail-height, 0);
+}
+
+.thumb {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  width: 8px;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--ink) 38%, transparent);
+  cursor: grab;
+  touch-action: none;
+}
+
+.thumb:active {
+  cursor: grabbing;
+}
+
+.thread-column {
+  width: min(46rem, 100%);
+  margin-inline: auto;
+  padding: 0 clamp(0.75rem, 2.5vw, 1.25rem) 2.5rem;
+  padding-right: max(clamp(0.75rem, 2.5vw, 1.25rem), env(safe-area-inset-right));
+}
+
+.sidebar-slot.is-closed + .canvas .thread-column,
+.sidebar-slot.is-closed + .canvas .prompt-block {
+  padding-left: max(clamp(0.75rem, 2.5vw, 1.25rem), env(safe-area-inset-left));
 }
 
 .prompt-block {
   flex: none;
+  width: min(46rem, 100%);
+  margin-inline: auto;
+  padding-right: max(clamp(0.75rem, 2.5vw, 1.25rem), env(safe-area-inset-right));
+  padding-left: clamp(0.75rem, 2.5vw, 1.25rem);
+}
+
+.sources {
+  width: 15.5rem;
+  max-height: 100%;
+  margin: 0.15rem 0 0;
+  padding: 0.65rem 0.4rem 0.45rem;
+  overflow: auto;
+  border: 1px solid var(--panel-line);
+  border-radius: 0.9rem;
+  background: var(--panel);
+}
+
+.sources h2 {
+  margin: 0 0.5rem 0.3rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.sources ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   width: 100%;
+  margin: 0;
+  padding: 0.4rem 0.45rem;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sources button:hover,
+.sources button[aria-pressed='true'] {
+  background: var(--hover);
+}
+
+.source-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.source-name {
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.source-file {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage-body:has(.sources) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15.5rem;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-content: center;
+  column-gap: 2rem;
+  width: min(64rem, 100%);
+  margin-inline: auto;
+  padding-right: max(clamp(0.75rem, 2.5vw, 1.25rem), env(safe-area-inset-right));
+  padding-left: clamp(0.75rem, 2.5vw, 1.25rem);
+}
+
+.stage-body:has(.sources) .thread {
+  grid-column: 1;
+  grid-row: 1;
+  width: auto;
+}
+
+.stage-body:has(.sources) .sources {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+}
+
+.stage-body:has(.sources) .prompt-block,
+.sidebar-slot.is-closed + .canvas .stage-body:has(.sources) .prompt-block {
+  grid-column: 1;
+  grid-row: 2;
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.stage-body:has(.sources) .thread-column,
+.sidebar-slot.is-closed + .canvas .stage-body:has(.sources) .thread-column {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 2.5rem;
 }
 
 h1 {
@@ -542,15 +835,33 @@ textarea:focus-visible {
   text-align: center;
 }
 
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.35rem 1.15rem 0;
+  color: var(--faint);
+}
+
+.activity-row .spin {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.activity-row .note {
+  padding: 0;
+  color: inherit;
+}
+
 .activity {
-  padding-right: 1.15rem;
-  padding-left: 1.15rem;
   text-align: left;
   animation: status-cycle 3.6s linear infinite;
 }
 
 @keyframes status-cycle {
-  from, to {
+  from,
+  to {
     opacity: 1;
   }
 }
@@ -696,6 +1007,39 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
+@container canvas (max-width: 56rem) {
+  .stage-body:has(.sources) {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .stage-body:has(.sources) .sources {
+    order: -1;
+    flex: none;
+    width: min(46rem, calc(100% - 1.5rem));
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .stage-body:has(.sources) .thread-column,
+  .sidebar-slot.is-closed + .canvas .stage-body:has(.sources) .thread-column {
+    width: min(46rem, 100%);
+    margin-inline: auto;
+    padding: 0 clamp(0.75rem, 2.5vw, 1.25rem) 2.5rem;
+  }
+
+  .stage-body:has(.sources) .prompt-block,
+  .sidebar-slot.is-closed + .canvas .stage-body:has(.sources) .prompt-block {
+    width: min(46rem, 100%);
+    margin-inline: auto;
+    padding-right: max(clamp(0.75rem, 2.5vw, 1.25rem), env(safe-area-inset-right));
+    padding-left: clamp(0.75rem, 2.5vw, 1.25rem);
+  }
+}
+
 @media (max-width: 48rem) {
   .canvas-bar {
     min-height: 3.5rem;
@@ -729,6 +1073,20 @@ textarea:focus-visible {
   .sidebar-list button,
   .sidebar .theme {
     padding-block: 0.65rem;
+  }
+
+  .sidebar-list .confirm {
+    padding-block: 0.65rem;
+  }
+
+  .sidebar-list .confirm button {
+    padding: 0 0.55rem;
+  }
+
+  .sidebar-list .delete-chat {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
   }
 
   .backdrop {
@@ -765,6 +1123,10 @@ textarea:focus-visible {
 
   .sidebar-slot.is-closed {
     transform: translateX(-100%);
+  }
+
+  .sidebar-resize {
+    display: none;
   }
 
   .sidebar,
@@ -809,7 +1171,8 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .sidebar-slot,
   .sidebar,
-  .backdrop {
+  .backdrop,
+  .sidebar-resize::after {
     transition: none;
   }
 }

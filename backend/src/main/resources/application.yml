@@ -39,6 +39,8 @@ server:
         same-site: lax
 
 founderslab:
+  questionnaires:
+    dir: ${QUESTIONNAIRES_DIR:../questionaires}
   auth:
     email-allowlist: ${FOUNDER_EMAIL_ALLOWLIST:}
   e2e:

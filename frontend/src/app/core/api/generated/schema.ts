@@ -84,6 +84,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ideas/{id}/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["append"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/directions": {
         parameters: {
             query?: never;
@@ -222,7 +238,7 @@ export interface paths {
         get: operations["get_2"];
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -350,6 +366,12 @@ export interface components {
         IdeaReading: {
             /** Format: uuid */
             id?: string;
+            prompt?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            turns?: components["schemas"]["IdeaTurn"][];
+        };
+        IdeaTurn: {
             prompt?: string;
             /** Format: date-time */
             createdAt?: string;
@@ -716,6 +738,32 @@ export interface operations {
             };
         };
     };
+    append: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdeaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["IdeaReading"];
+                };
+            };
+        };
+    };
     create_1: {
         parameters: {
             query?: never;
@@ -917,6 +965,26 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["IdeaReading"];
                 };
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

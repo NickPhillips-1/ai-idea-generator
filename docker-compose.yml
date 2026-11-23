@@ -26,6 +26,9 @@ services:
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       FOUNDERSLAB_E2E_LOGIN: ${FOUNDERSLAB_E2E_LOGIN:-false}
       FOUNDERSLAB_E2E_FIXTURES: ${FOUNDERSLAB_E2E_FIXTURES:-false}
+      QUESTIONNAIRES_DIR: /questionaires
+    volumes:
+      - ./questionaires:/questionaires:ro
     depends_on:
       postgres:
         condition: service_healthy

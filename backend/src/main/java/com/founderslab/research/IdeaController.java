@@ -1,9 +1,12 @@
 package com.founderslab.research;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
@@ -21,7 +24,14 @@ public class IdeaController {
 
     @PostMapping("/api/v1/ideas")
     public IdeaReading research(@RequestBody IdeaRequest request) {
-        return IdeaReading.from(ideas.researchAndSave(request.prompt()));
+        IdeaChat chat = ideas.researchAndSave(request.prompt());
+        return IdeaReading.from(chat, ideas.turns(chat.getId()));
+    }
+
+    @PostMapping("/api/v1/ideas/{id}/turns")
+    public IdeaReading append(@PathVariable UUID id, @RequestBody IdeaRequest request) {
+        IdeaChat chat = ideas.append(id, request.prompt());
+        return IdeaReading.from(chat, ideas.turns(chat.getId()));
     }
 
     @GetMapping("/api/v1/ideas")
@@ -32,14 +42,19 @@ public class IdeaController {
 
     @GetMapping("/api/v1/ideas/{id}")
     public IdeaReading get(@PathVariable UUID id) {
-        return IdeaReading.from(ideas.get(id));
+        return IdeaReading.from(ideas.get(id), ideas.turns(id));
+    }
+
+    @DeleteMapping("/api/v1/ideas/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+        ideas.delete(id);
     }
 
     public record IdeaRequest(String prompt) {
     }
 
-    public record IdeaReading(
-            UUID id,
+    public record IdeaTurn(
             String prompt,
             Instant createdAt,
             String factualSummary,
@@ -47,15 +62,30 @@ public class IdeaController {
             String aiInterpretation,
             String unknowns
     ) {
-        static IdeaReading from(IdeaChat chat) {
+        static IdeaTurn from(IdeaChatTurn turn) {
+            return new IdeaTurn(
+                    turn.getPrompt(),
+                    turn.getCreatedAt(),
+                    turn.getFactualSummary(),
+                    turn.getSupportingEvidence(),
+                    turn.getAiInterpretation(),
+                    turn.getUnknowns()
+            );
+        }
+    }
+
+    public record IdeaReading(
+            UUID id,
+            String prompt,
+            Instant createdAt,
+            List<IdeaTurn> turns
+    ) {
+        static IdeaReading from(IdeaChat chat, List<IdeaChatTurn> turns) {
             return new IdeaReading(
                     chat.getId(),
                     chat.getPrompt(),
                     chat.getCreatedAt(),
-                    chat.getFactualSummary(),
-                    chat.getSupportingEvidence(),
-                    chat.getAiInterpretation(),
-                    chat.getUnknowns()
+                    turns.stream().map(IdeaTurn::from).toList()
             );
         }
     }

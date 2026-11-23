@@ -405,7 +405,7 @@ Unimplemented. Job creation is asynchronous. Findings are records retrieved for 
 
 CSRF required. Signed-in founders only.
 
-The dashboard composer uses this route. It asks the model to read one idea. On success it stores that reading for the signed-in founder. It does not create a direction, a research job, or a finding, and it does not call Census.
+The dashboard composer uses this route to start a chat. It asks the model to answer one idea from the stored questionnaires for Paul, Nick, and Zach. On success it stores that chat and its first turn for the signed-in founder. It does not create a direction, a research job, or a finding, and it does not call Census.
 
 Request body:
 
@@ -413,19 +413,43 @@ Request body:
 | --- | --- | --- |
 | `prompt` | string | Required, non-blank, at most 1000 characters |
 
-`200` body:
+`200` with the chat body below.
+
+`400` when `prompt` is missing, blank, or longer than 1000 characters. `422` when a founder questionnaire cannot be read, the model is not configured, or its response fails validation. The body is the error object. It does not include `AI_API_KEY` or a filesystem path. A failed request is not stored.
+
+### `POST /api/v1/ideas/{id}/turns`
+
+CSRF required. Signed-in founders only.
+
+Appends one turn to the signed-in founder's chat. The model receives the earlier turns in that chat as conversation, then this prompt. The questionnaires for Paul, Nick, and Zach remain the only factual source. The chat `prompt` stays the first message. A follow-up does not create a second chat.
+
+Request body: the same `prompt` field as `POST /api/v1/ideas`.
+
+`200` with the chat body below. `turns` includes the new turn last.
+
+`400` when `prompt` is missing, blank, or longer than 1000 characters. `422` when a founder questionnaire cannot be read, the model is not configured, or its response fails validation. The body is the error object. It does not include `AI_API_KEY` or a filesystem path. A failed request does not append a turn.
+
+`404` when the id is missing, or the chat belongs to another founder. Nothing is stored. A chat owned by another founder is not distinguishable from a missing id.
+
+Chat body for `POST /api/v1/ideas`, `POST /api/v1/ideas/{id}/turns`, and `GET /api/v1/ideas/{id}`:
 
 | Field | Type | Rule |
 | --- | --- | --- |
 | `id` | uuid | The stored chat |
-| `prompt` | string | The prompt after trimming |
+| `prompt` | string | The first message, after trimming. Later turns do not change it |
 | `createdAt` | timestamp | When the chat was stored |
-| `factualSummary` | string | What the prompt itself supports |
-| `supportingEvidence` | string | The prompt text that reading rests on |
-| `aiInterpretation` | string | The model's reading. Not a verified fact |
-| `unknowns` | string | What the prompt does not establish |
+| `turns` | array | Oldest first. One entry per stored ask |
 
-`400` when `prompt` is missing, blank, or longer than 1000 characters. `422` when the model is not configured or its response fails validation. The body is the error object. It does not include `AI_API_KEY`. A failed request is not stored.
+Turn:
+
+| Field | Type | Rule |
+| --- | --- | --- |
+| `prompt` | string | That ask, after trimming |
+| `createdAt` | timestamp | When that turn was stored |
+| `factualSummary` | string | What the idea and the three stored questionnaires support |
+| `supportingEvidence` | string | The idea or questionnaire text that reading rests on |
+| `aiInterpretation` | string | The model's reading. It may relate the idea to the questionnaires. Not a verified fact |
+| `unknowns` | string | What the idea and the questionnaires do not establish |
 
 ### `GET /api/v1/ideas`
 
@@ -447,16 +471,26 @@ Summary:
 | Field | Type | Rule |
 | --- | --- | --- |
 | `id` | uuid | |
-| `prompt` | string | The stored prompt |
+| `prompt` | string | The first message in the chat |
 | `createdAt` | timestamp | |
 
-The summary does not include `factualSummary`, `supportingEvidence`, `aiInterpretation`, or `unknowns`.
+The summary does not include `turns`, `factualSummary`, `supportingEvidence`, `aiInterpretation`, or `unknowns`.
 
 ### `GET /api/v1/ideas/{id}`
 
 Signed-in founders only. No CSRF header.
 
-`200` with the same body as a successful `POST /api/v1/ideas`.
+`200` with the chat body above, including every turn, oldest first.
+
+`404` when the id is missing, or the chat belongs to another founder. The body is the error object. A chat owned by another founder is not distinguishable from a missing id.
+
+### `DELETE /api/v1/ideas/{id}`
+
+CSRF required. Signed-in founders only.
+
+Deletes the signed-in founder's chat. A chat stored by another founder is not deleted.
+
+`204` with an empty body.
 
 `404` when the id is missing, or the chat belongs to another founder. The body is the error object. A chat owned by another founder is not distinguishable from a missing id.
 

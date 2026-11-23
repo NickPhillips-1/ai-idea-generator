@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -209,10 +210,11 @@ class ResearchPathTest {
                         .content("{\"prompt\":\"  Shop fixtures  \"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.prompt").value("Shop fixtures"))
-                .andExpect(jsonPath("$.factualSummary").value("County Business Patterns lists 100 establishments."))
-                .andExpect(jsonPath("$.supportingEvidence").value("ESTAB 100"))
-                .andExpect(jsonPath("$.aiInterpretation").value("This reading is not proof that a customer has the problem."))
-                .andExpect(jsonPath("$.unknowns").value("County Business Patterns does not show willingness to pay or a customer problem."))
+                .andExpect(jsonPath("$.turns[0].prompt").value("Shop fixtures"))
+                .andExpect(jsonPath("$.turns[0].factualSummary").value("County Business Patterns lists 100 establishments."))
+                .andExpect(jsonPath("$.turns[0].supportingEvidence").value("ESTAB 100"))
+                .andExpect(jsonPath("$.turns[0].aiInterpretation").value("This reading is not proof that a customer has the problem."))
+                .andExpect(jsonPath("$.turns[0].unknowns").value("County Business Patterns does not show willingness to pay or a customer problem."))
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
                 .andReturn().getResponse().getContentAsString();
@@ -237,6 +239,7 @@ class ResearchPathTest {
                 .andExpect(jsonPath("$.items[0].prompt").value("mushrooms"))
                 .andExpect(jsonPath("$.items[0].createdAt").isNotEmpty())
                 .andExpect(jsonPath("$.items[0].factualSummary").doesNotExist())
+                .andExpect(jsonPath("$.items[0].turns").doesNotExist())
                 .andExpect(jsonPath("$.items[1].id").value(firstId))
                 .andExpect(jsonPath("$.items[1].prompt").value("Shop fixtures"));
 
@@ -244,7 +247,7 @@ class ResearchPathTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(secondId))
                 .andExpect(jsonPath("$.prompt").value("mushrooms"))
-                .andExpect(jsonPath("$.factualSummary").value("County Business Patterns lists 100 establishments."));
+                .andExpect(jsonPath("$.turns[0].factualSummary").value("County Business Patterns lists 100 establishments."));
 
         mockMvc.perform(get("/api/v1/ideas").with(founder("idea-grace@example.com")))
                 .andExpect(status().isOk())
@@ -255,6 +258,109 @@ class ResearchPathTest {
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(get("/api/v1/ideas/" + UUID.randomUUID()).with(founder("idea-ada@example.com")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void followUpStaysOnTheSameChat() throws Exception {
+        Founder ada = founders.save(new Founder("Ada Follow", "idea-follow-ada@example.com"));
+        Founder grace = founders.save(new Founder("Grace Follow", "idea-follow-grace@example.com"));
+        members.save(new WorkspaceMember(new WorkspaceMemberId(WORKSPACE_ID, ada.getId())));
+        members.save(new WorkspaceMember(new WorkspaceMemberId(WORKSPACE_ID, grace.getId())));
+
+        String first = mockMvc.perform(post("/api/v1/ideas")
+                        .with(founder("idea-follow-ada@example.com"))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"prompt\":\"hey test\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.turns.length()").value(1))
+                .andReturn().getResponse().getContentAsString();
+        String id = com.jayway.jsonpath.JsonPath.read(first, "$.id");
+
+        mockMvc.perform(post("/api/v1/ideas/" + id + "/turns")
+                        .with(founder("idea-follow-ada@example.com"))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"prompt\":\"testing again\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.prompt").value("hey test"))
+                .andExpect(jsonPath("$.turns.length()").value(2))
+                .andExpect(jsonPath("$.turns[0].prompt").value("hey test"))
+                .andExpect(jsonPath("$.turns[1].prompt").value("testing again"))
+                .andExpect(jsonPath("$.turns[1].factualSummary").value("County Business Patterns lists 100 establishments."));
+
+        mockMvc.perform(get("/api/v1/ideas").with(founder("idea-follow-ada@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].id").value(id))
+                .andExpect(jsonPath("$.items[0].prompt").value("hey test"));
+
+        mockMvc.perform(post("/api/v1/ideas/" + id + "/turns")
+                        .with(founder("idea-follow-grace@example.com"))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"prompt\":\"nope\"}"))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/v1/ideas/" + id).with(founder("idea-follow-ada@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.turns.length()").value(2));
+
+        mockMvc.perform(post("/api/v1/ideas/" + UUID.randomUUID() + "/turns")
+                        .with(founder("idea-follow-ada@example.com"))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"prompt\":\"missing\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void founderDeletesTheirOwnChat() throws Exception {
+        Founder ada = founders.save(new Founder("Ada Delete", "idea-delete-ada@example.com"));
+        Founder grace = founders.save(new Founder("Grace Delete", "idea-delete-grace@example.com"));
+        members.save(new WorkspaceMember(new WorkspaceMemberId(WORKSPACE_ID, ada.getId())));
+        members.save(new WorkspaceMember(new WorkspaceMemberId(WORKSPACE_ID, grace.getId())));
+
+        String body = mockMvc.perform(post("/api/v1/ideas")
+                        .with(founder("idea-delete-ada@example.com"))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"prompt\":\"mushrooms\"}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String id = com.jayway.jsonpath.JsonPath.read(body, "$.id");
+
+        mockMvc.perform(delete("/api/v1/ideas/" + id)
+                        .with(founder("idea-delete-grace@example.com"))
+                        .with(csrf()))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/v1/ideas/" + id).with(founder("idea-delete-ada@example.com")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/v1/ideas/" + id)
+                        .with(founder("idea-delete-ada@example.com"))
+                        .with(csrf()))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/v1/ideas").with(founder("idea-delete-ada@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0))
+                .andExpect(jsonPath("$.items").isEmpty());
+
+        mockMvc.perform(get("/api/v1/ideas/" + id).with(founder("idea-delete-ada@example.com")))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(delete("/api/v1/ideas/" + id)
+                        .with(founder("idea-delete-ada@example.com"))
+                        .with(csrf()))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(delete("/api/v1/ideas/" + UUID.randomUUID())
+                        .with(founder("idea-delete-ada@example.com"))
+                        .with(csrf()))
                 .andExpect(status().isNotFound());
     }
 
