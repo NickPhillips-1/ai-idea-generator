@@ -16,4 +16,8 @@ export class LabApi {
   findings(directionId: string): Observable<Schemas['FindingsPage']> {
     return this.http.get<Schemas['FindingsPage']>(`/api/v1/directions/${directionId}/findings`);
   }
+
+  researchIdea(prompt: string): Observable<Schemas['IdeaReading']> {
+    return this.http.post<Schemas['IdeaReading']>('/api/v1/ideas', { prompt });
+  }
 }

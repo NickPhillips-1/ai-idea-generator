@@ -102,7 +102,7 @@ DATABASE_URL=
 
 ## Password login
 
-The app creates one account at startup. The username is `nick` and the password is `password`. Sign in at `/login`. The password is stored as a hash.
+The app creates three accounts at startup: `nick`, `paul`, and `zach`. Each password is `password`. Sign in at `/login`. Passwords are stored as hashes. A SQL copy of the Paul and Zach inserts is `backend/src/main/resources/db/seed/insert_paul_zach.sql`.
 
 ## Census
 

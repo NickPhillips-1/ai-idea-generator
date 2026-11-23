@@ -99,20 +99,17 @@ class SessionSecurityTest {
 
     @Test
     void nickSignsInWithPassword() throws Exception {
-        MvcResult login = mockMvc.perform(post("/api/v1/login")
-                        .with(csrf())
-                        .param("username", "nick")
-                        .param("password", "password"))
-                .andExpect(status().isNoContent())
-                .andReturn();
+        signInAndReadSession("nick", "nick@localhost");
+    }
 
-        mockMvc.perform(get("/api/v1/session").session((MockHttpSession) login.getRequest().getSession(false)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("nick@localhost"))
-                .andExpect(jsonPath("$.name").value("nick"))
-                .andExpect(jsonPath("$.pictureUrl").doesNotExist())
-                .andExpect(jsonPath("$.role").value("FOUNDER"))
-                .andExpect(jsonPath("$.workspaceId").value(WORKSPACE_ID.toString()));
+    @Test
+    void paulSignsInWithPassword() throws Exception {
+        signInAndReadSession("paul", "paul@localhost");
+    }
+
+    @Test
+    void zachSignsInWithPassword() throws Exception {
+        signInAndReadSession("zach", "zach@localhost");
     }
 
     @Test
@@ -151,5 +148,22 @@ class SessionSecurityTest {
         Path output = Path.of("target", "openapi.json");
         Files.createDirectories(output.getParent());
         Files.writeString(output, body);
+    }
+
+    private void signInAndReadSession(String username, String email) throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/v1/login")
+                        .with(csrf())
+                        .param("username", username)
+                        .param("password", "password"))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        mockMvc.perform(get("/api/v1/session").session((MockHttpSession) login.getRequest().getSession(false)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(email))
+                .andExpect(jsonPath("$.name").value(username))
+                .andExpect(jsonPath("$.pictureUrl").doesNotExist())
+                .andExpect(jsonPath("$.role").value("FOUNDER"))
+                .andExpect(jsonPath("$.workspaceId").value(WORKSPACE_ID.toString()));
     }
 }

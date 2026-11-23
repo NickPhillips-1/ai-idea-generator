@@ -30,7 +30,7 @@ cp .env.example .env
 docker compose up
 ```
 
-Open [http://localhost:8080](http://localhost:8080). Caddy serves the Angular app and `/api` on one origin so the session cookie stays first-party. Sign in as `nick` with password `password`.
+Open [http://localhost:8080](http://localhost:8080). Caddy serves the Angular app and `/api` on one origin so the session cookie stays first-party. Sign in as `nick`, `paul`, or `zach` with password `password`.
 
 Fill these in `.env` when you need them. Never commit `.env`.
 

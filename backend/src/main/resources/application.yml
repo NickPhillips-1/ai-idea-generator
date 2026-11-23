@@ -1,6 +1,19 @@
 spring:
   application:
     name: founders-lab
+  ai:
+    model:
+      chat: none
+      embedding: none
+      image: none
+      moderation: none
+      audio:
+        speech: none
+        transcription: none
+    openai:
+      api-key: ${AI_API_KEY:}
+      chat:
+        model: ${AI_MODEL:gpt-5-mini}
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/founderslab}
     username: ${POSTGRES_USER:founderslab}

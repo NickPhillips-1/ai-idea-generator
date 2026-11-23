@@ -1,6 +1,9 @@
 package com.founderslab.integration.ai;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.stereotype.Component;
 
 /**
@@ -8,11 +11,19 @@ import org.springframework.stereotype.Component;
  * A live {@link AIProvider} replaces it when {@code AI_API_KEY} is set.
  */
 @Component
-@ConditionalOnProperty(name = "AI_API_KEY", havingValue = "", matchIfMissing = true)
+@Conditional(UnconfiguredAiProvider.MissingKey.class)
 public class UnconfiguredAiProvider implements AIProvider {
 
     @Override
     public <T> T generateStructuredResponse(String prompt, Class<T> responseType) {
         throw new IllegalStateException("AI_API_KEY is not configured.");
+    }
+
+    public static final class MissingKey implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            return context.getEnvironment().getProperty("AI_API_KEY", "").isBlank();
+        }
     }
 }

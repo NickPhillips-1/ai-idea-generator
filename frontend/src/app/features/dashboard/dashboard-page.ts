@@ -22,6 +22,9 @@ export class DashboardPage implements OnInit {
   protected readonly session = signal<SessionView | null>(null);
   protected readonly loadError = signal(false);
   protected readonly findings = signal<Schemas['FindingResponse'][]>([]);
+  protected readonly reading = signal<Schemas['IdeaReading'] | null>(null);
+  protected readonly sending = signal(false);
+  protected readonly sendError = signal('');
   protected readonly searchMaxLength = 1000;
   protected readonly draft = signal('');
   protected readonly hints = ['ZMS', "Zach's Meats", 'Ironman what', 'mushrooms'];
@@ -111,6 +114,8 @@ export class DashboardPage implements OnInit {
 
   protected newChat(): void {
     this.draft.set('');
+    this.reading.set(null);
+    this.sendError.set('');
     this.sidebarQuery.set('');
     this.selectedId.set(null);
     const field = this.prompt()?.nativeElement;
@@ -121,6 +126,26 @@ export class DashboardPage implements OnInit {
     if (typeof matchMedia === 'function' && matchMedia('(max-width: 40rem)').matches) {
       this.sidebarOpen.set(false);
     }
+  }
+
+  protected send(): void {
+    const prompt = this.draft().trim();
+    if (!prompt || this.sending()) {
+      return;
+    }
+    this.sending.set(true);
+    this.sendError.set('');
+    this.reading.set(null);
+    this.lab.researchIdea(prompt).subscribe({
+      next: (reading) => {
+        this.reading.set(reading);
+        this.sending.set(false);
+      },
+      error: (error: unknown) => {
+        this.sending.set(false);
+        this.sendError.set(messageFrom(error));
+      },
+    });
   }
 
   protected onDraft(event: Event): void {
@@ -166,3 +191,13 @@ export class DashboardPage implements OnInit {
 }
 
 type QuestionnaireCopy = { status: 'loading' | 'ready' | 'missing'; text: string };
+
+function messageFrom(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'error' in error) {
+    const body = (error as { error?: { message?: unknown } }).error;
+    if (body && typeof body.message === 'string' && body.message) {
+      return body.message;
+    }
+  }
+  return 'The idea could not be researched.';
+}
