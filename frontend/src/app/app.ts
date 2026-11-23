@@ -9,11 +9,19 @@ function isLoginPath(url: string): boolean {
   return path === '/login' || path.startsWith('/login/');
 }
 
+function isDashboardPath(url: string): boolean {
+  const path = url.split('?')[0].split('#')[0];
+  return path === '/' || path === '' || path === '/dashboard';
+}
+
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink],
   templateUrl: './app.html',
   styleUrl: './app.css',
+  host: {
+    '[class.stage]': 'stage()',
+  },
 })
 export class App implements OnInit {
   private readonly router = inject(Router);
@@ -33,11 +41,30 @@ export class App implements OnInit {
     { initialValue: !isLoginPath(globalThis.location.pathname) },
   );
 
+  protected readonly stage = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => isDashboardPath(this.router.url)),
+    ),
+    { initialValue: isDashboardPath(globalThis.location.pathname) },
+  );
+
   ngOnInit(): void {
     this.sessions.current().subscribe({
       next: () => this.sessionReady.set(true),
       error: () => this.sessionReady.set(true),
     });
+  }
+
+  protected initials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 1).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
   }
 
   protected toggleMenu(event: Event): void {
