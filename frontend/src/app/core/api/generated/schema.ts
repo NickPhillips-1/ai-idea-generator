@@ -75,7 +75,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["list_1"];
         put?: never;
         post: operations["research"];
         delete?: never;
@@ -196,7 +196,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/directions/{id}": {
+    "/api/v1/model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["current"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ideas/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -204,6 +220,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["get_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/directions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -316,6 +348,11 @@ export interface components {
             prompt?: string;
         };
         IdeaReading: {
+            /** Format: uuid */
+            id?: string;
+            prompt?: string;
+            /** Format: date-time */
+            createdAt?: string;
             factualSummary?: string;
             supportingEvidence?: string;
             aiInterpretation?: string;
@@ -415,6 +452,25 @@ export interface components {
             offset?: number;
             /** Format: int32 */
             total?: number;
+        };
+        ModelResponse: {
+            model?: string;
+        };
+        IdeaChatPage: {
+            items?: components["schemas"]["IdeaChatSummary"][];
+            /** Format: int32 */
+            limit?: number;
+            /** Format: int32 */
+            offset?: number;
+            /** Format: int32 */
+            total?: number;
+        };
+        IdeaChatSummary: {
+            /** Format: uuid */
+            id?: string;
+            prompt?: string;
+            /** Format: date-time */
+            createdAt?: string;
         };
         FindingResponse: {
             /** Format: uuid */
@@ -616,6 +672,26 @@ export interface operations {
             };
         };
     };
+    list_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["IdeaChatPage"];
+                };
+            };
+        };
+    };
     research: {
         parameters: {
             query?: never;
@@ -802,7 +878,49 @@ export interface operations {
             };
         };
     };
+    current: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ModelResponse"];
+                };
+            };
+        };
+    };
     get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["IdeaReading"];
+                };
+            };
+        };
+    };
+    get_3: {
         parameters: {
             query?: never;
             header?: never;

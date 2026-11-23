@@ -2,22 +2,41 @@ package com.founderslab.research;
 
 import com.founderslab.common.exception.ApiException;
 import com.founderslab.common.response.FieldErrorDetail;
+import com.founderslab.founder.CurrentFounder;
+import com.founderslab.founder.WorkspaceMember;
 import com.founderslab.integration.ai.AIProvider;
 import com.founderslab.integration.ai.FindingDraft;
 import jakarta.validation.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class IdeaService {
 
     private final AIProvider aiProvider;
     private final Validator validator;
+    private final IdeaChatRepository chats;
+    private final CurrentFounder currentFounder;
 
     public IdeaService(AIProvider aiProvider, Validator validator) {
+        this(aiProvider, validator, null, null);
+    }
+
+    @Autowired
+    public IdeaService(
+            AIProvider aiProvider,
+            Validator validator,
+            IdeaChatRepository chats,
+            CurrentFounder currentFounder
+    ) {
         this.aiProvider = aiProvider;
         this.validator = validator;
+        this.chats = chats;
+        this.currentFounder = currentFounder;
     }
 
     public IdeaReading research(String prompt) {
@@ -50,6 +69,39 @@ public class IdeaService {
                 draft.getAiInterpretation(),
                 draft.getUnknowns()
         );
+    }
+
+    @Transactional
+    public IdeaChat researchAndSave(String prompt) {
+        IdeaReading reading = research(prompt);
+        WorkspaceMember member = currentFounder.requireMembership();
+        return chats.save(new IdeaChat(
+                member.getId().getWorkspaceId(),
+                member.getId().getFounderId(),
+                prompt.trim(),
+                reading.factualSummary(),
+                reading.supportingEvidence(),
+                reading.aiInterpretation(),
+                reading.unknowns()
+        ));
+    }
+
+    @Transactional(readOnly = true)
+    public List<IdeaChat> list() {
+        return chats.findByFounderIdOrderByCreatedAtDesc(founderId());
+    }
+
+    @Transactional(readOnly = true)
+    public IdeaChat get(UUID id) {
+        IdeaChat chat = chats.findById(id).orElseThrow(() -> ApiException.notFound("Chat was not found."));
+        if (!chat.getFounderId().equals(founderId())) {
+            throw ApiException.notFound("Chat was not found.");
+        }
+        return chat;
+    }
+
+    private UUID founderId() {
+        return currentFounder.requireMembership().getId().getFounderId();
     }
 
     private static String instructions(String idea) {

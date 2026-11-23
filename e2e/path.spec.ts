@@ -10,12 +10,13 @@ test('feature: login', async ({ browser }) => {
   await nick.page.getByLabel('Username').fill('nick');
   await nick.page.getByLabel('Password').fill('password');
   await nick.page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(nick.page.getByText('Signed in as nick.')).toBeVisible();
+  await expect(nick.page).toHaveURL(/\/dashboard/);
+  await expect(nick.page.getByRole('heading', { name: 'What idea should we research?' })).toBeVisible();
   await nick.close();
 
   const { page, close } = await openFounder(browser);
   await signIn(page, 'ada@example.com');
   await page.goto('/dashboard');
-  await expect(page.getByText('Signed in as ada@example.com.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What idea should we research?' })).toBeVisible();
   await close();
 });

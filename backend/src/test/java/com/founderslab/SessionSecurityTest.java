@@ -124,6 +124,13 @@ class SessionSecurityTest {
     }
 
     @Test
+    void memberCanReadTheModelName() throws Exception {
+        mockMvc.perform(get("/api/v1/model").with(user("nick")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.model").value("gpt-5-mini"));
+    }
+
+    @Test
     void memberCanReadTheSession() throws Exception {
         Founder founder = founders.save(new Founder("Ada", "ada@example.com"));
         members.save(new WorkspaceMember(new WorkspaceMemberId(WORKSPACE_ID, founder.getId())));
@@ -142,6 +149,7 @@ class SessionSecurityTest {
         String body = mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paths['/api/v1/session'].get").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/model'].get").exists())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();

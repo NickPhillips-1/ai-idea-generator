@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { LabApi, Schemas } from '../../core/api/lab-api.service';
 import { pathState } from '../../core/research/path-state';
 import { SessionApi, SessionView } from '../../core/api/session-api.service';
 import { Theme } from '../../core/theme';
 import { FindingReview } from '../findings/finding-review';
+
+const NARROW_SCREEN = '(max-width: 48rem)';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -16,6 +18,9 @@ export class DashboardPage implements OnInit {
   private readonly sessions = inject(SessionApi);
   private readonly lab = inject(LabApi);
   private readonly themes = inject(Theme);
+  private readonly destroyRef = inject(DestroyRef);
+  private desktopSidebarOpen = true;
+  private readonly narrow = signal(false);
   protected readonly theme = this.themes.mode;
   private readonly popup = viewChild<ElementRef<HTMLDialogElement>>('popup');
   private readonly prompt = viewChild<ElementRef<HTMLTextAreaElement>>('prompt');
@@ -23,6 +28,10 @@ export class DashboardPage implements OnInit {
   protected readonly loadError = signal(false);
   protected readonly findings = signal<Schemas['FindingResponse'][]>([]);
   protected readonly reading = signal<Schemas['IdeaReading'] | null>(null);
+  protected readonly chats = signal<Schemas['IdeaChatSummary'][]>([]);
+  protected readonly chatsError = signal(false);
+  protected readonly openChatId = signal<string | null>(null);
+  protected readonly model = signal('');
   protected readonly sending = signal(false);
   protected readonly sendError = signal('');
   protected readonly searchMaxLength = 1000;
@@ -30,6 +39,20 @@ export class DashboardPage implements OnInit {
   protected readonly hints = ['ZMS', "Zach's Meats", 'Ironman what', 'mushrooms'];
   private readonly hintIndex = signal(0);
   protected readonly hint = computed(() => this.hints[this.hintIndex()]);
+  private readonly statusLines = ['Reading the idea...', 'Asking the model...', 'Checking the reading...'];
+  private readonly statusIndex = signal(0);
+  protected readonly statusLine = computed(() => this.statusLines[this.statusIndex()]);
+  private readonly pendingPrompt = signal('');
+  protected readonly threadPrompt = computed(() => {
+    const saved = this.reading()?.prompt?.trim();
+    if (saved) {
+      return saved;
+    }
+    return this.pendingPrompt();
+  });
+  protected readonly hasThread = computed(
+    () => this.sending() || this.reading() !== null || this.sendError() !== '' || this.findings().length > 0,
+  );
   protected readonly sidebarOpen = signal(true);
   protected readonly sidebarQuery = signal('');
   protected readonly questionnaires = [
@@ -43,6 +66,14 @@ export class DashboardPage implements OnInit {
       return this.questionnaires;
     }
     return this.questionnaires.filter((item) => item.name.toLowerCase().includes(query));
+  });
+  protected readonly visibleChats = computed(() => {
+    const query = this.sidebarQuery().trim().toLowerCase();
+    const chats = this.chats();
+    if (!query) {
+      return chats;
+    }
+    return chats.filter((chat) => (chat.prompt ?? '').toLowerCase().includes(query));
   });
   protected readonly copies = signal<Record<string, QuestionnaireCopy>>({});
   protected readonly selectedId = signal<string | null>(null);
@@ -58,9 +89,7 @@ export class DashboardPage implements OnInit {
   });
 
   constructor() {
-    if (typeof matchMedia === 'function' && matchMedia('(max-width: 40rem)').matches) {
-      this.sidebarOpen.set(false);
-    }
+    this.watchViewport();
     effect(() => {
       const element = this.popup()?.nativeElement;
       if (element && !element.open) {
@@ -74,10 +103,24 @@ export class DashboardPage implements OnInit {
         body.scrollTop = 0;
       }
     });
+    effect((onCleanup) => {
+      const field = this.prompt()?.nativeElement;
+      const canvas = field?.closest('.canvas');
+      if (!field || !(canvas instanceof HTMLElement) || typeof ResizeObserver !== 'function') {
+        return;
+      }
+      const observer = new ResizeObserver(() => this.fitComposer(field));
+      observer.observe(canvas);
+      onCleanup(() => observer.disconnect());
+    });
   }
 
   ngOnInit(): void {
     this.loadQuestionnaires();
+    this.loadChats();
+    this.lab.model().subscribe({
+      next: (body) => this.model.set(body.model ?? ''),
+    });
     this.sessions.current().subscribe({
       next: (value) => this.session.set(value),
       error: () => this.loadError.set(true),
@@ -96,12 +139,22 @@ export class DashboardPage implements OnInit {
     this.hintIndex.update((index) => (index + 1) % this.hints.length);
   }
 
+  protected nextStatus(): void {
+    this.statusIndex.update((index) => (index + 1) % this.statusLines.length);
+  }
+
   protected openSidebar(): void {
     this.sidebarOpen.set(true);
+    if (!this.narrow()) {
+      this.desktopSidebarOpen = true;
+    }
   }
 
   protected closeSidebar(): void {
     this.sidebarOpen.set(false);
+    if (!this.narrow()) {
+      this.desktopSidebarOpen = false;
+    }
   }
 
   protected toggleTheme(): void {
@@ -114,17 +167,20 @@ export class DashboardPage implements OnInit {
 
   protected newChat(): void {
     this.draft.set('');
+    this.pendingPrompt.set('');
     this.reading.set(null);
     this.sendError.set('');
+    this.openChatId.set(null);
     this.sidebarQuery.set('');
     this.selectedId.set(null);
     const field = this.prompt()?.nativeElement;
     if (field) {
       field.value = '';
+      field.style.height = 'auto';
       field.focus();
     }
-    if (typeof matchMedia === 'function' && matchMedia('(max-width: 40rem)').matches) {
-      this.sidebarOpen.set(false);
+    if (this.narrow()) {
+      this.closeSidebar();
     }
   }
 
@@ -134,12 +190,22 @@ export class DashboardPage implements OnInit {
       return;
     }
     this.sending.set(true);
+    this.statusIndex.set(0);
     this.sendError.set('');
     this.reading.set(null);
+    this.pendingPrompt.set(prompt);
+    this.draft.set('');
+    const field = this.prompt()?.nativeElement;
+    if (field) {
+      field.value = '';
+      field.style.height = 'auto';
+    }
     this.lab.researchIdea(prompt).subscribe({
       next: (reading) => {
         this.reading.set(reading);
         this.sending.set(false);
+        this.openChatId.set(reading.id ?? null);
+        this.loadChats();
       },
       error: (error: unknown) => {
         this.sending.set(false);
@@ -155,10 +221,38 @@ export class DashboardPage implements OnInit {
       field.value = value;
     }
     this.draft.set(value);
+    this.fitComposer(field);
+  }
+
+  protected openChat(id: string | undefined): void {
+    if (!id) {
+      return;
+    }
+    this.lab.idea(id).subscribe({
+      next: (reading) => {
+        this.reading.set(reading);
+        this.sendError.set('');
+        this.pendingPrompt.set('');
+        this.openChatId.set(id);
+        this.draft.set('');
+        const field = this.prompt()?.nativeElement;
+        if (field) {
+          field.value = '';
+          field.style.height = 'auto';
+        }
+        if (this.narrow()) {
+          this.closeSidebar();
+        }
+      },
+      error: () => this.sendError.set('The chat could not be opened.'),
+    });
   }
 
   protected selectQuestionnaire(id: string): void {
     this.selectedId.set(id);
+    if (this.narrow()) {
+      this.closeSidebar();
+    }
   }
 
   protected closeQuestionnaire(): void {
@@ -169,6 +263,38 @@ export class DashboardPage implements OnInit {
     if (event.target === event.currentTarget) {
       this.closeQuestionnaire();
     }
+  }
+
+  private watchViewport(): void {
+    if (typeof matchMedia !== 'function') {
+      return;
+    }
+    const query = matchMedia(NARROW_SCREEN);
+    const apply = () => {
+      const narrow = query.matches;
+      this.narrow.set(narrow);
+      this.sidebarOpen.set(narrow ? false : this.desktopSidebarOpen);
+    };
+    apply();
+    query.addEventListener('change', apply);
+    this.destroyRef.onDestroy(() => query.removeEventListener('change', apply));
+  }
+
+  private fitComposer(field: HTMLTextAreaElement): void {
+    field.style.height = 'auto';
+    if (field.scrollHeight > 0) {
+      field.style.height = `${field.scrollHeight}px`;
+    }
+  }
+
+  private loadChats(): void {
+    this.lab.ideas().subscribe({
+      next: (page) => {
+        this.chats.set(page.items ?? []);
+        this.chatsError.set(false);
+      },
+      error: () => this.chatsError.set(true),
+    });
   }
 
   private loadQuestionnaires(): void {

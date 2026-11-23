@@ -1,11 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 import { LabApi, Schemas } from '../../core/api/lab-api.service';
 import { SessionApi } from '../../core/api/session-api.service';
 import { DashboardPage } from './dashboard-page';
 
 describe('DashboardPage', () => {
   let fixture: ComponentFixture<DashboardPage>;
+  let research: (prompt: string) => Observable<Schemas['IdeaReading']>;
+  let chatPage: Schemas['IdeaChatPage'];
+  let listIdeas: () => Observable<Schemas['IdeaChatPage']>;
+  let openIdea: (id: string) => Observable<Schemas['IdeaReading']>;
   const prompts: string[] = [];
   const reading: Schemas['IdeaReading'] = {
     factualSummary: 'A test idea.',
@@ -15,6 +19,13 @@ describe('DashboardPage', () => {
   };
 
   beforeEach(async () => {
+    chatPage = { items: [] };
+    listIdeas = () => of(chatPage);
+    openIdea = () => of(reading);
+    research = (prompt: string) => {
+      prompts.push(prompt);
+      return of(reading);
+    };
     await TestBed.configureTestingModule({
       imports: [DashboardPage],
       providers: [
@@ -26,10 +37,10 @@ describe('DashboardPage', () => {
           provide: LabApi,
           useValue: {
             findings: () => of({ items: [] }),
-            researchIdea: (prompt: string) => {
-              prompts.push(prompt);
-              return of(reading);
-            },
+            ideas: () => listIdeas(),
+            idea: (id: string) => openIdea(id),
+            researchIdea: (prompt: string) => research(prompt),
+            model: () => of({ model: 'gpt-5-mini' }),
           },
         },
       ],
@@ -43,6 +54,11 @@ describe('DashboardPage', () => {
   afterEach(() => {
     localStorage.removeItem('founders-theme');
     delete document.documentElement.dataset['theme'];
+  });
+
+  it('shows the model in the composer', () => {
+    const label = fixture.nativeElement.querySelector('.model') as HTMLElement;
+    expect(label.textContent?.replace(/\s+/g, ' ').trim()).toBe('Model gpt-5-mini');
   });
 
   it('rotates example ideas while the search is empty', () => {
@@ -77,9 +93,56 @@ describe('DashboardPage', () => {
     fixture.detectChanges();
 
     expect(prompts).toEqual(['Test']);
+    expect(root.querySelector('.home')?.classList.contains('has-thread')).toBe(true);
+    expect(root.querySelector('.thread')).not.toBeNull();
+    expect(root.querySelector('.user-turn')?.textContent?.trim()).toBe('Test');
+    expect(root.querySelector('.thread .layer')).toBeNull();
+    expect((root.querySelector('textarea') as HTMLTextAreaElement).value).toBe('');
     expect(root.textContent).toContain('A test idea.');
     expect(root.textContent).toContain('This is not evidence of demand.');
-    expect(root.textContent).toContain("This is the model's reading, not a verified fact.");
+  });
+
+  it('shows a spinner and cycles status while the idea is researched', () => {
+    const pending = new Subject<Schemas['IdeaReading']>();
+    research = (prompt: string) => {
+      prompts.push(prompt);
+      return pending;
+    };
+
+    const root = fixture.nativeElement as HTMLElement;
+    const field = root.querySelector('textarea') as HTMLTextAreaElement;
+    field.value = 'Test';
+    field.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const send = () => root.querySelector('.send') as HTMLButtonElement;
+    send().click();
+    fixture.detectChanges();
+
+    const note = () => root.querySelector('.activity') as HTMLElement;
+    expect(send().getAttribute('aria-label')).toBe('Researching');
+    expect(send().getAttribute('aria-busy')).toBe('true');
+    expect(send().querySelector('.spinner')).not.toBeNull();
+    expect(note().textContent?.trim()).toBe('Reading the idea...');
+
+    note().dispatchEvent(new Event('animationiteration'));
+    fixture.detectChanges();
+    expect(note().textContent?.trim()).toBe('Asking the model...');
+
+    note().dispatchEvent(new Event('animationiteration'));
+    fixture.detectChanges();
+    expect(note().textContent?.trim()).toBe('Checking the reading...');
+
+    note().dispatchEvent(new Event('animationiteration'));
+    fixture.detectChanges();
+    expect(note().textContent?.trim()).toBe('Reading the idea...');
+
+    pending.next(reading);
+    fixture.detectChanges();
+
+    expect(root.querySelector('[aria-label="Send"]')).not.toBeNull();
+    expect(root.querySelector('.spinner')).toBeNull();
+    expect(root.textContent).toContain('A test idea.');
   });
 
   it('hides the example once the search has text', () => {
@@ -129,6 +192,94 @@ describe('DashboardPage', () => {
 
     const names = [...root.querySelectorAll('.sidebar-list button')].map((button) => button.textContent?.trim());
     expect(names).toEqual(['Paul']);
+  });
+
+  it('lists recent chats, filters them, and opens one', () => {
+    chatPage = {
+      items: [
+        { id: 'chat-mushrooms', prompt: 'mushrooms', createdAt: '2026-11-23T18:00:00Z' },
+        { id: 'chat-fixtures', prompt: 'shop fixtures', createdAt: '2026-11-23T17:00:00Z' },
+      ],
+    };
+    openIdea = (id: string) =>
+      of({
+        ...reading,
+        id,
+        prompt: id === 'chat-mushrooms' ? 'mushrooms' : 'shop fixtures',
+        factualSummary: id === 'chat-mushrooms' ? 'Mushrooms grow in the dark.' : 'Fixtures hold merchandise.',
+      });
+
+    const page = TestBed.createComponent(DashboardPage);
+    page.detectChanges();
+    const root = page.nativeElement as HTMLElement;
+    const recents = () => root.querySelector('[aria-labelledby="recents-heading"]') as HTMLElement;
+    const labels = () => [...recents().querySelectorAll('button')].map((button) => button.textContent?.trim());
+
+    expect(labels()).toEqual(['mushrooms', 'shop fixtures']);
+    expect(root.textContent).not.toContain('No chats yet.');
+
+    const search = root.querySelector('.sidebar-search input') as HTMLInputElement;
+    search.value = 'shop';
+    search.dispatchEvent(new Event('input'));
+    page.detectChanges();
+    expect(labels()).toEqual(['shop fixtures']);
+
+    search.value = 'zzzz';
+    search.dispatchEvent(new Event('input'));
+    page.detectChanges();
+    expect(recents().textContent).toContain('No matches.');
+
+    search.value = '';
+    search.dispatchEvent(new Event('input'));
+    page.detectChanges();
+
+    (recents().querySelector('button') as HTMLButtonElement).click();
+    page.detectChanges();
+
+    expect(recents().querySelector('button')?.getAttribute('aria-pressed')).toBe('true');
+    expect(root.textContent).toContain('Mushrooms grow in the dark.');
+    expect(root.querySelector('.user-turn')?.textContent?.trim()).toBe('mushrooms');
+    expect(root.querySelector('.thread .layer')).toBeNull();
+    expect((root.querySelector('textarea') as HTMLTextAreaElement).value).toBe('');
+
+    (root.querySelector('.new-chat') as HTMLButtonElement).click();
+    page.detectChanges();
+
+    expect(recents().querySelector('[aria-pressed="true"]')).toBeNull();
+    expect(root.querySelector('.thread')).toBeNull();
+    expect((root.querySelector('textarea') as HTMLTextAreaElement).value).toBe('');
+  });
+
+  it('adds a sent idea to recents', () => {
+    research = (prompt: string) => {
+      prompts.push(prompt);
+      chatPage = {
+        items: [{ id: 'chat-1', prompt, createdAt: '2026-11-23T18:00:00Z' }],
+      };
+      return of({ ...reading, id: 'chat-1', prompt });
+    };
+
+    const root = fixture.nativeElement as HTMLElement;
+    const field = root.querySelector('textarea') as HTMLTextAreaElement;
+    field.value = 'mushrooms';
+    field.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (root.querySelector('[aria-label="Send"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const recents = root.querySelector('[aria-labelledby="recents-heading"]') as HTMLElement;
+    const button = recents.querySelector('button') as HTMLButtonElement;
+    expect(button.textContent?.trim()).toBe('mushrooms');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('says when chats cannot be loaded', () => {
+    listIdeas = () => throwError(() => new Error('offline'));
+    const page = TestBed.createComponent(DashboardPage);
+    page.detectChanges();
+
+    expect(page.nativeElement.textContent).toContain('Chats could not be loaded.');
+    expect(page.nativeElement.querySelector('textarea')).not.toBeNull();
   });
 
   it('starts a new chat from the sidebar', () => {
@@ -191,5 +342,52 @@ describe('DashboardPage', () => {
     expect(document.documentElement.dataset['theme']).toBe('light');
     expect(button.textContent).toContain('Dark mode');
     expect(button.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('keeps the sidebar in a drawer on a narrow window and docks it again when the window grows', () => {
+    const listeners: Array<(event: MediaQueryListEvent) => void> = [];
+    const query = {
+      matches: true,
+      addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => {
+        listeners.push(listener);
+      },
+      removeEventListener: () => undefined,
+    };
+    const original = window.matchMedia?.bind(window);
+    window.matchMedia = (queryText: string) => {
+      if (queryText === '(max-width: 48rem)') {
+        return query as unknown as MediaQueryList;
+      }
+      if (original) {
+        return original(queryText);
+      }
+      return { matches: false, addEventListener() {}, removeEventListener() {} } as unknown as MediaQueryList;
+    };
+
+    const phone = TestBed.createComponent(DashboardPage);
+    phone.detectChanges();
+    const slot = () => phone.nativeElement.querySelector('.sidebar-slot') as HTMLElement;
+    expect(slot().classList.contains('is-closed')).toBe(true);
+
+    query.matches = false;
+    for (const listener of listeners) {
+      listener({ matches: false } as MediaQueryListEvent);
+    }
+    phone.detectChanges();
+    expect(slot().classList.contains('is-closed')).toBe(false);
+
+    query.matches = true;
+    for (const listener of listeners) {
+      listener({ matches: true } as MediaQueryListEvent);
+    }
+    phone.detectChanges();
+    expect(slot().classList.contains('is-closed')).toBe(true);
+
+    phone.destroy();
+    if (original) {
+      window.matchMedia = original;
+    } else {
+      delete (window as { matchMedia?: typeof window.matchMedia }).matchMedia;
+    }
   });
 });

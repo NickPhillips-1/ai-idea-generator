@@ -1,4 +1,4 @@
-<div class="home">
+<div class="home" [class.has-thread]="hasThread()">
   <button
     type="button"
     class="backdrop"
@@ -16,7 +16,7 @@
     >
       <div class="sidebar-bar">
         <label class="sidebar-search">
-          <span class="sr">Search questionnaires</span>
+          <span class="sr">Search</span>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6" />
             <path d="M16 16.5 20 20.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -71,7 +71,27 @@
 
         <section aria-labelledby="recents-heading">
           <h2 id="recents-heading">Recents</h2>
-          <p class="empty">No chats yet.</p>
+          @if (chatsError()) {
+            <p class="empty">Chats could not be loaded.</p>
+          } @else if (visibleChats().length) {
+            <ul class="sidebar-list">
+              @for (chat of visibleChats(); track chat.id) {
+                <li>
+                  <button
+                    type="button"
+                    (click)="openChat(chat.id)"
+                    [attr.aria-pressed]="openChatId() === chat.id"
+                  >
+                    <span>{{ chat.prompt }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else if (sidebarQuery().trim()) {
+            <p class="empty">No matches.</p>
+          } @else {
+            <p class="empty">No chats yet.</p>
+          }
         </section>
       </div>
 
@@ -100,110 +120,136 @@
     </aside>
   </div>
 
-  <button
-    type="button"
-    class="icon-btn reopen"
-    aria-label="Open sidebar"
-    [attr.inert]="sidebarOpen() ? '' : null"
-    [attr.aria-hidden]="sidebarOpen() ? 'true' : null"
-    (click)="openSidebar()"
-  >
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="3.75" y="4.25" width="16.5" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
-      <path d="M9.25 4.25v15.5" fill="none" stroke="currentColor" stroke-width="1.6" />
-    </svg>
-  </button>
-
   <div class="canvas">
-    <div class="column">
-    <h1>What idea should we research?</h1>
+    <div class="canvas-bar">
+      <button
+        type="button"
+        class="icon-btn reopen"
+        aria-label="Open sidebar"
+        [attr.inert]="sidebarOpen() ? '' : null"
+        [attr.aria-hidden]="sidebarOpen() ? 'true' : null"
+        (click)="openSidebar()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3.75" y="4.25" width="16.5" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <path d="M9.25 4.25v15.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+        </svg>
+      </button>
+    </div>
 
-    <div class="composer">
-      <label class="prompt">
-        <span class="sr">Search questionnaires</span>
-        <textarea
-          #prompt
-          rows="1"
-          [attr.maxlength]="searchMaxLength"
-          aria-describedby="search-count"
-          [value]="draft()"
-          (input)="onDraft($event)"
-        ></textarea>
-        @if (!draft()) {
-          <span class="rotating" aria-hidden="true" (animationiteration)="nextHint()">{{ hint() }}</span>
+    <div class="stage-body">
+      @if (hasThread()) {
+        <div class="thread">
+          @if (threadPrompt(); as prompt) {
+            <p class="user-turn">{{ prompt }}</p>
+          }
+          @if (sending()) {
+            <p class="note activity" aria-live="polite" (animationiteration)="nextStatus()">{{ statusLine() }}</p>
+          } @else if (sendError()) {
+            <p class="note">{{ sendError() }}</p>
+          }
+          @if (reading(); as result) {
+            <article class="reading">
+              <h2>Factual summary</h2>
+              <p>{{ result.factualSummary }}</p>
+              <h2>Supporting evidence</h2>
+              <p>{{ result.supportingEvidence }}</p>
+              <h2>AI interpretation</h2>
+              <p>{{ result.aiInterpretation }}</p>
+              <h2>Unknowns</h2>
+              <p>{{ result.unknowns }}</p>
+            </article>
+          }
+          @if (findings().length) {
+            <div class="findings">
+              <app-finding-review [findings]="findings()" />
+            </div>
+          }
+        </div>
+      }
+
+      <div class="prompt-block">
+        @if (!hasThread()) {
+          <h1>What idea should we research?</h1>
         }
-      </label>
-      <div class="tools">
-        <div class="tools-end">
-          <button type="button" class="send" aria-label="Send" [disabled]="sending() || !draft().trim()" (click)="send()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 19V5M7 10l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </button>
+        <div class="composer">
+          <label class="prompt">
+            <span class="sr">Search questionnaires</span>
+            <textarea
+              #prompt
+              rows="1"
+              [attr.maxlength]="searchMaxLength"
+              aria-describedby="search-count"
+              [value]="draft()"
+              (input)="onDraft($event)"
+            ></textarea>
+            @if (!draft()) {
+              <span class="rotating" aria-hidden="true" (animationiteration)="nextHint()">{{ hint() }}</span>
+            }
+          </label>
+          <div class="tools">
+            <div class="tools-end">
+              @if (model()) {
+                <p class="model"><span class="sr">Model </span>{{ model() }}</p>
+              }
+              <button
+                type="button"
+                class="send"
+                [class.is-busy]="sending()"
+                [attr.aria-busy]="sending() ? true : null"
+                [attr.aria-label]="sending() ? 'Researching' : 'Send'"
+                [disabled]="sending() || !draft().trim()"
+                (click)="send()"
+              >
+                @if (sending()) {
+                  <span class="spinner"></span>
+                } @else {
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 19V5M7 10l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="composer-meta">
+          @if (loadError()) {
+            <p class="session">The session could not be loaded.</p>
+          } @else if (!session()) {
+            <p class="session">Loading the session.</p>
+          }
+          <p id="search-count" class="count">{{ draft().length }} / {{ searchMaxLength }}</p>
         </div>
       </div>
     </div>
-    <div class="composer-meta">
-      @if (session(); as current) {
-        <p class="session">Signed in as {{ current.name }}.</p>
-      } @else if (loadError()) {
-        <p class="session">The session could not be loaded.</p>
-      } @else {
-        <p class="session">Loading the session.</p>
-      }
-      <p id="search-count" class="count">{{ draft().length }} / {{ searchMaxLength }}</p>
-    </div>
-
-    @if (sending()) {
-      <p class="note">Researching this idea.</p>
-    } @else if (sendError()) {
-      <p class="note">{{ sendError() }}</p>
-    }
-    @if (reading(); as result) {
-      <article class="layer">
-        <h2>Factual summary</h2>
-        <p>{{ result.factualSummary }}</p>
-        <h2>Supporting evidence</h2>
-        <p>{{ result.supportingEvidence }}</p>
-        <h2>AI interpretation</h2>
-        <p>{{ result.aiInterpretation }}</p>
-        <p class="note">This is the model's reading, not a verified fact.</p>
-        <h2>Unknowns</h2>
-        <p>{{ result.unknowns }}</p>
-      </article>
-    }
 
     @if (selected(); as item) {
       <dialog class="popup" #popup aria-labelledby="questionnaire-title" (click)="onBackdrop($event)" (close)="closeQuestionnaire()">
-        <div class="popup-bar">
-          <h2 id="questionnaire-title">{{ item.name }}</h2>
-          <button type="button" class="close" aria-label="Close" (click)="closeQuestionnaire()">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-          </button>
-        </div>
-        <div class="popup-body">
-          @if (selectedCopy(); as copy) {
-            @if (copy.status === 'loading') {
-              <p class="note">Loading {{ item.name }}'s questionnaire.</p>
-            } @else if (copy.status === 'missing') {
-              <p class="note">{{ item.name }}'s questionnaire could not be loaded.</p>
-            } @else if (!copy.text.trim()) {
-              <p class="note">No answers yet.</p>
-            } @else {
-              <pre class="answers">{{ copy.text }}</pre>
+        <div class="popup-sheet">
+          <div class="popup-bar">
+            <h2 id="questionnaire-title">{{ item.name }}</h2>
+            <button type="button" class="close" aria-label="Close" (click)="closeQuestionnaire()">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="popup-body">
+            @if (selectedCopy(); as copy) {
+              @if (copy.status === 'loading') {
+                <p class="note">Loading {{ item.name }}'s questionnaire.</p>
+              } @else if (copy.status === 'missing') {
+                <p class="note">{{ item.name }}'s questionnaire could not be loaded.</p>
+              } @else if (!copy.text.trim()) {
+                <p class="note">No answers yet.</p>
+              } @else {
+                <pre class="answers">{{ copy.text }}</pre>
+              }
             }
-          }
+          </div>
         </div>
       </dialog>
     }
 
-    @if (findings().length) {
-      <div class="findings">
-        <app-finding-review [findings]="findings()" />
-      </div>
-    }
-    </div>
   </div>
 </div>
