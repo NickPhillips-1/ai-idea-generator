@@ -17,7 +17,19 @@ export class LabApi {
     return this.http.get<Schemas['FindingsPage']>(`/api/v1/directions/${directionId}/findings`);
   }
 
+  ideas(): Observable<Schemas['IdeaChatPage']> {
+    return this.http.get<Schemas['IdeaChatPage']>('/api/v1/ideas');
+  }
+
+  idea(id: string): Observable<Schemas['IdeaReading']> {
+    return this.http.get<Schemas['IdeaReading']>(`/api/v1/ideas/${id}`);
+  }
+
   researchIdea(prompt: string): Observable<Schemas['IdeaReading']> {
     return this.http.post<Schemas['IdeaReading']>('/api/v1/ideas', { prompt });
+  }
+
+  model(): Observable<Schemas['ModelResponse']> {
+    return this.http.get<Schemas['ModelResponse']>('/api/v1/model');
   }
 }

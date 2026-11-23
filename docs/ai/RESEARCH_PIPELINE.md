@@ -28,7 +28,7 @@ The caller passes the full prompt and the response type it expects. The method r
 
 The specified library is Spring AI 2.0.2. Spring AI 2.1 release candidates are outside this contract. The pipeline is pinned to the 2.0.2 release so structured responses target a shipped API during implementation, and so a release candidate cannot move the method’s behavior under an unreleased version.
 
-The server reads `AI_API_KEY` and `AI_MODEL` from the environment. The key selects the provider account. The model id is configuration so changing models does not require a code change and does not put the id in the Angular build. Both values stay on the server. The browser never receives the provider client, the key, or a proxy that would let page script call the model directly. That split exists because a key in Angular can be read by anyone who loads the app, and a browser-side model call would bypass job accounting, the source catalog, and validation.
+The server reads `AI_API_KEY` and `AI_MODEL` from the environment. The key selects the provider account. The model id is configuration so changing models does not require a code change and does not put the id in the Angular build. The browser receives that name from `GET /api/v1/model`. It never receives the provider client, the key, or a proxy that would let page script call the model directly. That split exists because a key in Angular can be read by anyone who loads the app, and a browser-side model call would bypass job accounting, the source catalog, and validation.
 
 ## One adapter
 
@@ -249,7 +249,7 @@ Best-effort abort exists as an optimization so a cancelled attempt can stop read
 
 ## Security summary
 
-- `AI_API_KEY`, `AI_MODEL`, and `CENSUS_API_KEY` are server environment values. Angular does not receive them. Logs, `research_source`, job errors, `GET /api/v1/research-jobs/{id}`, and findings responses do not echo them.
+- `AI_API_KEY`, `AI_MODEL`, and `CENSUS_API_KEY` are server environment values. Angular does not receive the key or the Census key. `GET /api/v1/model` returns the model name. Logs, `research_source`, job errors, `GET /api/v1/research-jobs/{id}`, and findings responses do not echo the key or the Census key.
 - The worker calls only the approved Census catalog row. Founder text and Census text cannot add a URL or a second adapter.
 - Instructions and untrusted data are separated in the prompt. Census payload and founder-written direction text are untrusted. Embedded instructions that try to override the system rules are ignored.
 - A finding is inserted only with a persisted `research_source_id`, and only after Bean Validation of `factualSummary`, `supportingEvidence`, `aiInterpretation`, and `unknowns`.

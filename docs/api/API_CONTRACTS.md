@@ -21,7 +21,7 @@ The Angular client must be generated from the springdoc document that matches th
 - Identifiers are UUID strings.
 - Timestamps are ISO-8601 strings in UTC (`2026-11-11T12:00:00Z`). A timestamp that has not happened yet is JSON `null`.
 - Request and response bodies are `application/json`.
-- Every `/api/v1` read and write is limited to the caller's workspace. An id that is missing, or that belongs to another workspace, is `404`. The research-source catalog exception is stated on that route: a source that exists and is outside the caller's catalog is `403`.
+- Every `/api/v1` read and write is limited to the caller's workspace. An id that is missing, or that belongs to another workspace, is `404`. The research-source catalog exception is stated on that route: a source that exists and is outside the caller's catalog is `403`. An idea chat is narrower still: a chat stored by another founder is `404`, including a founder in the same workspace.
 - Enum values that are not in the set named for that field are `400`, with a `fieldErrors` entry for that field.
 - A required string that is missing or blank after trimming is `400`, with a `fieldErrors` entry for that field.
 - No response in this contract includes `source_config`, provider credentials, or raw API keys.
@@ -405,7 +405,7 @@ Unimplemented. Job creation is asynchronous. Findings are records retrieved for 
 
 CSRF required. Signed-in founders only.
 
-The dashboard composer uses this route. It asks the model to read one idea. It does not create a direction, a research job, or a finding, and it does not call Census.
+The dashboard composer uses this route. It asks the model to read one idea. On success it stores that reading for the signed-in founder. It does not create a direction, a research job, or a finding, and it does not call Census.
 
 Request body:
 
@@ -417,12 +417,62 @@ Request body:
 
 | Field | Type | Rule |
 | --- | --- | --- |
+| `id` | uuid | The stored chat |
+| `prompt` | string | The prompt after trimming |
+| `createdAt` | timestamp | When the chat was stored |
 | `factualSummary` | string | What the prompt itself supports |
 | `supportingEvidence` | string | The prompt text that reading rests on |
 | `aiInterpretation` | string | The model's reading. Not a verified fact |
 | `unknowns` | string | What the prompt does not establish |
 
-`400` when `prompt` is missing, blank, or longer than 1000 characters. `422` when the model is not configured or its response fails validation. The body is the error object. It does not include `AI_API_KEY`.
+`400` when `prompt` is missing, blank, or longer than 1000 characters. `422` when the model is not configured or its response fails validation. The body is the error object. It does not include `AI_API_KEY`. A failed request is not stored.
+
+### `GET /api/v1/ideas`
+
+Signed-in founders only. No CSRF header.
+
+Returns the signed-in founder's chats, newest first. A founder with no chats gets `200` with `items` empty and `total` `0`. A chat stored by another founder is absent.
+
+`200` page:
+
+| Field | Type | Rule |
+| --- | --- | --- |
+| `items` | array | Newest first. Each item is a summary |
+| `limit` | integer | The number of items in this page |
+| `offset` | integer | `0` |
+| `total` | integer | The number of chats for this founder |
+
+Summary:
+
+| Field | Type | Rule |
+| --- | --- | --- |
+| `id` | uuid | |
+| `prompt` | string | The stored prompt |
+| `createdAt` | timestamp | |
+
+The summary does not include `factualSummary`, `supportingEvidence`, `aiInterpretation`, or `unknowns`.
+
+### `GET /api/v1/ideas/{id}`
+
+Signed-in founders only. No CSRF header.
+
+`200` with the same body as a successful `POST /api/v1/ideas`.
+
+`404` when the id is missing, or the chat belongs to another founder. The body is the error object. A chat owned by another founder is not distinguishable from a missing id.
+
+### `GET /api/v1/model`
+
+Signed-in founders only. No CSRF header.
+
+Returns the model name the server will use for a chat. A blank `AI_MODEL` returns `gpt-5-mini`. The response does not include `AI_API_KEY`.
+
+`200` body:
+
+| Field | Type | Rule |
+| --- | --- | --- |
+| `model` | string | The configured model name |
+
+`401` when there is no session.
 
 Research job object, returned by `GET /api/v1/research-jobs/{id}` and by an idempotent replay:
 
@@ -659,3 +709,4 @@ Implemented differences from the tables above:
 - `tokenUsage` and `estimatedCost` stay null until a provider reports them. The fixture path does not invent token counts.
 - `POST /e2e/login` exists only when `FOUNDERSLAB_E2E_LOGIN=true`. It is how Playwright signs in without the password form. It is absent when that flag is false.
 - `AIProvider` throws when `AI_API_KEY` is unset. `FOUNDERSLAB_E2E_FIXTURES=true` supplies fixture Census and model adapters so tests and Playwright do not call live Census or a paid model. A set key and fixtures off uses the Spring AI 2.0.2 OpenAI adapter.
+- `GET /api/v1/model` returns the model name. It does not return `AI_API_KEY`.

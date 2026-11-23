@@ -195,6 +195,69 @@ class ResearchPathTest {
         org.junit.jupiter.api.Assertions.assertEquals(1, adapter.calls());
     }
 
+    @Test
+    void savedIdeaIsListedForTheFounderWhoSentIt() throws Exception {
+        Founder ada = founders.save(new Founder("Ada Ideas", "idea-ada@example.com"));
+        Founder grace = founders.save(new Founder("Grace Ideas", "idea-grace@example.com"));
+        members.save(new WorkspaceMember(new WorkspaceMemberId(WORKSPACE_ID, ada.getId())));
+        members.save(new WorkspaceMember(new WorkspaceMemberId(WORKSPACE_ID, grace.getId())));
+
+        String first = mockMvc.perform(post("/api/v1/ideas")
+                        .with(founder("idea-ada@example.com"))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"prompt\":\"  Shop fixtures  \"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.prompt").value("Shop fixtures"))
+                .andExpect(jsonPath("$.factualSummary").value("County Business Patterns lists 100 establishments."))
+                .andExpect(jsonPath("$.supportingEvidence").value("ESTAB 100"))
+                .andExpect(jsonPath("$.aiInterpretation").value("This reading is not proof that a customer has the problem."))
+                .andExpect(jsonPath("$.unknowns").value("County Business Patterns does not show willingness to pay or a customer problem."))
+                .andExpect(jsonPath("$.id").isNotEmpty())
+                .andExpect(jsonPath("$.createdAt").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+        String firstId = com.jayway.jsonpath.JsonPath.read(first, "$.id");
+
+        String second = mockMvc.perform(post("/api/v1/ideas")
+                        .with(founder("idea-ada@example.com"))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"prompt\":\"mushrooms\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.prompt").value("mushrooms"))
+                .andReturn().getResponse().getContentAsString();
+        String secondId = com.jayway.jsonpath.JsonPath.read(second, "$.id");
+
+        mockMvc.perform(get("/api/v1/ideas").with(founder("idea-ada@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(2))
+                .andExpect(jsonPath("$.limit").value(2))
+                .andExpect(jsonPath("$.offset").value(0))
+                .andExpect(jsonPath("$.items[0].id").value(secondId))
+                .andExpect(jsonPath("$.items[0].prompt").value("mushrooms"))
+                .andExpect(jsonPath("$.items[0].createdAt").isNotEmpty())
+                .andExpect(jsonPath("$.items[0].factualSummary").doesNotExist())
+                .andExpect(jsonPath("$.items[1].id").value(firstId))
+                .andExpect(jsonPath("$.items[1].prompt").value("Shop fixtures"));
+
+        mockMvc.perform(get("/api/v1/ideas/" + secondId).with(founder("idea-ada@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(secondId))
+                .andExpect(jsonPath("$.prompt").value("mushrooms"))
+                .andExpect(jsonPath("$.factualSummary").value("County Business Patterns lists 100 establishments."));
+
+        mockMvc.perform(get("/api/v1/ideas").with(founder("idea-grace@example.com")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.total").value(0))
+                .andExpect(jsonPath("$.items").isEmpty());
+
+        mockMvc.perform(get("/api/v1/ideas/" + secondId).with(founder("idea-grace@example.com")))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/v1/ideas/" + UUID.randomUUID()).with(founder("idea-ada@example.com")))
+                .andExpect(status().isNotFound());
+    }
+
     private String submit(String email) throws Exception {
         String body = mockMvc.perform(post("/api/v1/questionnaires")
                         .with(founder(email))

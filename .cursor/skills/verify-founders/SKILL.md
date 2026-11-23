@@ -54,7 +54,7 @@ Preconditions are inside the test. If the journey cannot start, the failure reas
 
 ## Evidence
 
-Proof is the user-visible state after the action, not an HTTP 200. The login proof shows the username and password form for an anonymous visit to `/dashboard`, then `Signed in as nick.` after the password form, and `Signed in as ada@example.com.` after `POST /e2e/login`.
+Proof is the user-visible state after the action, not an HTTP 200. The login proof shows the username and password form for an anonymous visit to `/dashboard`, then `What idea should we research?` after the password form, and the same heading after `POST /e2e/login`.
 
 Artifacts:
 

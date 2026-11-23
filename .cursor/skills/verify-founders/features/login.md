@@ -6,8 +6,8 @@ An anonymous founder who opens a protected route sees the username and password 
 
 - Redirect from `/dashboard` to `/login` when there is no session.
 - Show the Username and Password fields and the Sign in button.
-- Sign in as `nick` / `password` and see `Signed in as nick.`
-- `POST /e2e/login?email=ada@example.com` with `X-XSRF-TOKEN`, then the dashboard shows `Signed in as ada@example.com.`
+- Sign in as `nick` / `password` and see `What idea should we research?`
+- `POST /e2e/login?email=ada@example.com` with `X-XSRF-TOKEN`, then the dashboard shows `What idea should we research?`
 
 ## How to get to it (user POV)
 

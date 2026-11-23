@@ -44,7 +44,7 @@ public interface AIProvider {
 }
 ```
 
-The interface exists so research code depends on a structured result, not on a vendor client. Tests pass a fake. The Spring AI 2.0.2 client is the one production implementation. The 2.0 line is the stable release that matches Boot 4.0 and 4.1. Spring AI 2.1 release candidates are out of scope because their APIs can still move during the milestone. Configuration uses the environment variables `AI_API_KEY` and `AI_MODEL`. Those values stay on the server. They are never written into the frontend, API responses, logs, or git.
+The interface exists so research code depends on a structured result, not on a vendor client. Tests pass a fake. The Spring AI 2.0.2 client is the one production implementation. The 2.0 line is the stable release that matches Boot 4.0 and 4.1. Spring AI 2.1 release candidates are out of scope because their APIs can still move during the milestone. Configuration uses the environment variables `AI_API_KEY` and `AI_MODEL`. The key stays on the server. It is never written into the frontend, API responses, logs, or git. `GET /api/v1/model` returns the model name so the chat can show it. The Angular build does not embed that name.
 
 **PostgreSQL, Flyway, UUID primary keys**, and `@Version` on `founder`, `questionnaire`, `research_direction`, and `opportunity`.
 

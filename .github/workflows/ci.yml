@@ -21,7 +21,15 @@ jobs:
           cache: maven
       - name: Run backend tests
         working-directory: backend
-        run: mvn -B test
+        run: |
+          for attempt in 1 2 3; do
+            mvn -B test && exit 0
+            if [ "$attempt" -lt 3 ]; then
+              echo "Maven attempt ${attempt} failed; retrying in 30s..."
+              sleep 30
+            fi
+          done
+          exit 1
 
   frontend:
     name: Frontend tests

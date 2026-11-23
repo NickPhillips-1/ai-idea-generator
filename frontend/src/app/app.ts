@@ -50,10 +50,26 @@ export class App implements OnInit {
   );
 
   ngOnInit(): void {
+    this.followVisibleHeight();
     this.sessions.current().subscribe({
       next: () => this.sessionReady.set(true),
       error: () => this.sessionReady.set(true),
     });
+  }
+
+  private followVisibleHeight(): void {
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      return;
+    }
+    const apply = () => {
+      if (viewport.height > 0) {
+        document.documentElement.style.setProperty('--app-height', `${viewport.height}px`);
+      }
+    };
+    apply();
+    viewport.addEventListener('resize', apply);
+    viewport.addEventListener('scroll', apply);
   }
 
   protected initials(name: string): string {

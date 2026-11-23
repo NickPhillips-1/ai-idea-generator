@@ -1,5 +1,6 @@
 package com.founderslab.integration.ai;
 
+import com.founderslab.common.ModelName;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
@@ -14,8 +15,6 @@ import org.springframework.stereotype.Component;
 @Conditional(OpenAiProvider.Configured.class)
 public class OpenAiProvider implements AIProvider {
 
-    private static final String DEFAULT_MODEL = "gpt-5-mini";
-
     private final ChatClient chatClient;
 
     public OpenAiProvider(
@@ -25,7 +24,7 @@ public class OpenAiProvider implements AIProvider {
         OpenAiChatModel chatModel = OpenAiChatModel.builder()
                 .options(OpenAiChatOptions.builder()
                         .apiKey(apiKey)
-                        .model(model.isBlank() ? DEFAULT_MODEL : model)
+                        .model(ModelName.resolve(model))
                         .build())
                 .build();
         this.chatClient = ChatClient.create(chatModel);
