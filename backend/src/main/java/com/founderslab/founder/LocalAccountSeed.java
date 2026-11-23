@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class LocalAccountSeed implements ApplicationRunner {
 
-    static final String USERNAME = "nick";
     static final String PASSWORD = "password";
 
     private final FounderRepository founders;
@@ -29,9 +28,15 @@ public class LocalAccountSeed implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        Founder founder = founders.findByUsername(USERNAME)
-                .orElseGet(() -> new Founder(USERNAME, "nick@localhost"));
-        founder.setUsername(USERNAME);
+        seed("nick", "nick@localhost");
+        seed("paul", "paul@localhost");
+        seed("zach", "zach@localhost");
+    }
+
+    private void seed(String username, String email) {
+        Founder founder = founders.findByUsername(username)
+                .orElseGet(() -> new Founder(username, email));
+        founder.setUsername(username);
         founder.setPasswordHash(passwordEncoder.encode(PASSWORD));
         Founder saved = founders.save(founder);
         if (members.findFirstByIdFounderId(saved.getId()).isEmpty()) {

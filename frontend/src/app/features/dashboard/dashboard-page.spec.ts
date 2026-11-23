@@ -1,11 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { LabApi } from '../../core/api/lab-api.service';
+import { LabApi, Schemas } from '../../core/api/lab-api.service';
 import { SessionApi } from '../../core/api/session-api.service';
 import { DashboardPage } from './dashboard-page';
 
 describe('DashboardPage', () => {
   let fixture: ComponentFixture<DashboardPage>;
+  const prompts: string[] = [];
+  const reading: Schemas['IdeaReading'] = {
+    factualSummary: 'A test idea.',
+    supportingEvidence: 'The founder wrote Test.',
+    aiInterpretation: 'This is not evidence of demand.',
+    unknowns: 'No customer interviews.',
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -17,10 +24,17 @@ describe('DashboardPage', () => {
         },
         {
           provide: LabApi,
-          useValue: { findings: () => of({ items: [] }) },
+          useValue: {
+            findings: () => of({ items: [] }),
+            researchIdea: (prompt: string) => {
+              prompts.push(prompt);
+              return of(reading);
+            },
+          },
         },
       ],
     }).compileComponents();
+    prompts.length = 0;
     localStorage.setItem('founders-theme', 'light');
     fixture = TestBed.createComponent(DashboardPage);
     fixture.detectChanges();
@@ -46,6 +60,26 @@ describe('DashboardPage', () => {
     hint().dispatchEvent(new Event('animationiteration'));
     fixture.detectChanges();
     expect(hint().textContent?.trim()).toBe(hints[0]);
+  });
+
+  it('sends the idea when the arrow is clicked', () => {
+    const root = fixture.nativeElement as HTMLElement;
+    const send = () => root.querySelector('[aria-label="Send"]') as HTMLButtonElement;
+    expect(send().disabled).toBe(true);
+
+    const field = root.querySelector('textarea') as HTMLTextAreaElement;
+    field.value = '  Test  ';
+    field.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(send().disabled).toBe(false);
+    send().click();
+    fixture.detectChanges();
+
+    expect(prompts).toEqual(['Test']);
+    expect(root.textContent).toContain('A test idea.');
+    expect(root.textContent).toContain('This is not evidence of demand.');
+    expect(root.textContent).toContain("This is the model's reading, not a verified fact.");
   });
 
   it('hides the example once the search has text', () => {

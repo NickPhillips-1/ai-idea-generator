@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["research"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/directions": {
         parameters: {
             query?: never;
@@ -295,6 +311,15 @@ export interface components {
             founderId?: string;
             /** Format: date-time */
             createdAt?: string;
+        };
+        IdeaRequest: {
+            prompt?: string;
+        };
+        IdeaReading: {
+            factualSummary?: string;
+            supportingEvidence?: string;
+            aiInterpretation?: string;
+            unknowns?: string;
         };
         CreateDirectionRequest: {
             /** Format: uuid */
@@ -587,6 +612,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DecisionResponse"];
+                };
+            };
+        };
+    };
+    research: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdeaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["IdeaReading"];
                 };
             };
         };

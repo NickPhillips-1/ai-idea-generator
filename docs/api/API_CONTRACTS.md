@@ -401,6 +401,29 @@ Request body:
 
 Unimplemented. Job creation is asynchronous. Findings are records retrieved for a direction. `aiInterpretation` is model text, not a verified fact. Responses never include `source_config` or raw API keys.
 
+### `POST /api/v1/ideas`
+
+CSRF required. Signed-in founders only.
+
+The dashboard composer uses this route. It asks the model to read one idea. It does not create a direction, a research job, or a finding, and it does not call Census.
+
+Request body:
+
+| Field | Type | Rule |
+| --- | --- | --- |
+| `prompt` | string | Required, non-blank, at most 1000 characters |
+
+`200` body:
+
+| Field | Type | Rule |
+| --- | --- | --- |
+| `factualSummary` | string | What the prompt itself supports |
+| `supportingEvidence` | string | The prompt text that reading rests on |
+| `aiInterpretation` | string | The model's reading. Not a verified fact |
+| `unknowns` | string | What the prompt does not establish |
+
+`400` when `prompt` is missing, blank, or longer than 1000 characters. `422` when the model is not configured or its response fails validation. The body is the error object. It does not include `AI_API_KEY`.
+
 Research job object, returned by `GET /api/v1/research-jobs/{id}` and by an idempotent replay:
 
 | Field | Type | Rule |
@@ -635,4 +658,4 @@ Implemented differences from the tables above:
 - Collection `limit`, `offset`, and `sort` query parameters are not validated yet. The implemented collections return the matching rows for the caller's workspace.
 - `tokenUsage` and `estimatedCost` stay null until a provider reports them. The fixture path does not invent token counts.
 - `POST /e2e/login` exists only when `FOUNDERSLAB_E2E_LOGIN=true`. It is how Playwright signs in without the password form. It is absent when that flag is false.
-- `AIProvider` throws when `AI_API_KEY` is unset. `FOUNDERSLAB_E2E_FIXTURES=true` supplies fixture Census and model adapters so tests and Playwright do not call live Census or a paid model. Spring AI is not on the classpath.
+- `AIProvider` throws when `AI_API_KEY` is unset. `FOUNDERSLAB_E2E_FIXTURES=true` supplies fixture Census and model adapters so tests and Playwright do not call live Census or a paid model. A set key and fixtures off uses the Spring AI 2.0.2 OpenAI adapter.

@@ -135,7 +135,7 @@
       </label>
       <div class="tools">
         <div class="tools-end">
-          <button type="button" class="send" aria-label="Send">
+          <button type="button" class="send" aria-label="Send" [disabled]="sending() || !draft().trim()" (click)="send()">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 19V5M7 10l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
@@ -153,6 +153,25 @@
       }
       <p id="search-count" class="count">{{ draft().length }} / {{ searchMaxLength }}</p>
     </div>
+
+    @if (sending()) {
+      <p class="note">Researching this idea.</p>
+    } @else if (sendError()) {
+      <p class="note">{{ sendError() }}</p>
+    }
+    @if (reading(); as result) {
+      <article class="layer">
+        <h2>Factual summary</h2>
+        <p>{{ result.factualSummary }}</p>
+        <h2>Supporting evidence</h2>
+        <p>{{ result.supportingEvidence }}</p>
+        <h2>AI interpretation</h2>
+        <p>{{ result.aiInterpretation }}</p>
+        <p class="note">This is the model's reading, not a verified fact.</p>
+        <h2>Unknowns</h2>
+        <p>{{ result.unknowns }}</p>
+      </article>
+    }
 
     @if (selected(); as item) {
       <dialog class="popup" #popup aria-labelledby="questionnaire-title" (click)="onBackdrop($event)" (close)="closeQuestionnaire()">
