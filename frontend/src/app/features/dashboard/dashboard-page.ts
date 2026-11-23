@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, injec
 import { LabApi, Schemas } from '../../core/api/lab-api.service';
 import { pathState } from '../../core/research/path-state';
 import { SessionApi, SessionView } from '../../core/api/session-api.service';
+import { Theme } from '../../core/theme';
 import { FindingReview } from '../findings/finding-review';
 
 @Component({
@@ -14,6 +15,8 @@ import { FindingReview } from '../findings/finding-review';
 export class DashboardPage implements OnInit {
   private readonly sessions = inject(SessionApi);
   private readonly lab = inject(LabApi);
+  private readonly themes = inject(Theme);
+  protected readonly theme = this.themes.mode;
   private readonly popup = viewChild<ElementRef<HTMLDialogElement>>('popup');
   private readonly prompt = viewChild<ElementRef<HTMLTextAreaElement>>('prompt');
   protected readonly session = signal<SessionView | null>(null);
@@ -96,6 +99,10 @@ export class DashboardPage implements OnInit {
 
   protected closeSidebar(): void {
     this.sidebarOpen.set(false);
+  }
+
+  protected toggleTheme(): void {
+    this.themes.toggle();
   }
 
   protected onSidebarQuery(event: Event): void {

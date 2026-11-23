@@ -22,7 +22,7 @@ h1 {
 
 .alert {
   margin: 0 0 1.1rem;
-  color: #9f2d20;
+  color: var(--alert);
 }
 
 form {

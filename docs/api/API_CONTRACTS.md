@@ -70,7 +70,7 @@ Authorization, evaluated by Spring Security:
 | `404` | The resource is missing, or it is not visible in the caller's workspace. |
 | `409` | Optimistic-lock version conflict, idempotency key reused with a different body, or a different key while a research job for that direction is `RUNNING`. |
 | `422` | The JSON is well formed and fails a domain rule. Questionnaire answers do not satisfy the template, or alignment generation represents fewer than two distinct founders. |
-| `429` | The founder exceeded the research rate or the research cost cap. |
+| `429` | The process-wide `/api/` request rate was exceeded, or the founder exceeded the research rate or the research cost cap. |
 
 ## Error body
 
@@ -107,7 +107,9 @@ Shape:
 }
 ```
 
-`409` and `429` use the same object. Their `fieldErrors` array is empty unless a specific field is named in the route. `429` may include a `Retry-After` header when the limiter has a delay. The body still carries no key material and no provider payload.
+`409` and `429` use the same object. Their `fieldErrors` array is empty unless a specific field is named in the route. The body still carries no key material and no provider payload.
+
+Every path under `/api/` shares one process-wide limit. The window is one minute. Exceeding it is `429`, with `Retry-After` set to the seconds left in that window. The message is `The request rate for this server has been reached.` The default limit is 600 requests per minute and `FOUNDERSLAB_RATE_LIMIT_PER_MINUTE` overrides it. Each running process keeps its own window. Research start still applies the workspace research rate and the research cost cap after this check. Those two rejections are also `429` and do not set `Retry-After`.
 
 ## Collections
 
