@@ -1,6 +1,5 @@
 @if (workspace()) {
 <header class="top">
-  <a class="product-name" routerLink="/dashboard">Founders</a>
   <div class="account">
     @if (account(); as person) {
       <button
@@ -8,6 +7,7 @@
         class="profile"
         [attr.aria-label]="person.name"
         [attr.aria-expanded]="menuOpen()"
+        [attr.aria-controls]="menuOpen() ? 'account-menu' : null"
         aria-haspopup="menu"
         (click)="toggleMenu($event)"
       >
@@ -18,6 +18,8 @@
             referrerpolicy="no-referrer"
             (error)="pictureFailed.set(true)"
           />
+        } @else if (initials(person.name)) {
+          <span class="initials" aria-hidden="true">{{ initials(person.name) }}</span>
         } @else {
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="9" r="3.25" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -32,18 +34,33 @@
         }
       </button>
       @if (menuOpen()) {
-        <button
-          type="button"
-          class="logout"
-          (click)="logout($event)"
-          [disabled]="loggingOut()"
-          [attr.aria-busy]="loggingOut() ? true : null"
+        <div
+          class="menu"
+          id="account-menu"
+          role="menu"
+          aria-label="Account"
+          (click)="$event.stopPropagation()"
         >
-          @if (loggingOut()) {
-            <span class="spin" aria-hidden="true"></span>
-          }
-          Log out
-        </button>
+          <div class="who">
+            <span class="who-name">{{ person.name }}</span>
+            @if (person.email !== person.name) {
+              <span class="who-email">{{ person.email }}</span>
+            }
+          </div>
+          <button
+            type="button"
+            class="logout"
+            role="menuitem"
+            (click)="logout($event)"
+            [disabled]="loggingOut()"
+            [attr.aria-busy]="loggingOut() ? true : null"
+          >
+            @if (loggingOut()) {
+              <span class="spin" aria-hidden="true"></span>
+            }
+            Log out
+          </button>
+        </div>
       }
     } @else if (sessionReady()) {
       <a class="sign-in" routerLink="/login">Sign in</a>

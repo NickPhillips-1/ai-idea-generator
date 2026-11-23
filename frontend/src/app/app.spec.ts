@@ -33,7 +33,7 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should name Founders in the shell', async () => {
+  it('shows sign in in the shell header', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
@@ -43,7 +43,7 @@ describe('App', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     const header = compiled.querySelector('header');
-    expect(header?.querySelector('.product-name')?.textContent).toContain('Founders');
+    expect(header?.textContent).not.toContain('Founders');
     expect(header?.querySelector('.sign-in')?.textContent).toContain('Sign in');
   });
 

@@ -1,38 +1,114 @@
 <div class="home">
-  <div class="column">
-    <ul class="questionnaires" aria-label="Questionnaires">
-      @for (item of visibleQuestionnaires(); track item.id) {
-        <li>
-          <button
-            type="button"
-            (click)="selectQuestionnaire(item.id)"
-            [attr.aria-pressed]="selectedId() === item.id"
-          >
-            <svg class="mark" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7 3.2h6.1L18.8 9v10.2A1.6 1.6 0 0 1 17.2 20.8H7A1.6 1.6 0 0 1 5.4 19.2V4.8A1.6 1.6 0 0 1 7 3.2z" fill="#fff" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-              <path d="M13 3.3V9h5.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-              <path d="M8.2 13h7.6M8.2 16.2h5.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
-            </svg>
-            <span class="file-name">{{ item.name }}</span>
-            <span class="file-kind">md</span>
-          </button>
-        </li>
-      } @empty {
-        <li class="empty">No matching questionnaire.</li>
-      }
-    </ul>
+  <button
+    type="button"
+    class="backdrop"
+    [class.is-open]="sidebarOpen()"
+    tabindex="-1"
+    aria-hidden="true"
+    (click)="closeSidebar()"
+  ></button>
+  <div class="sidebar-slot" [class.is-closed]="!sidebarOpen()">
+    <aside
+      class="sidebar"
+      aria-label="Sidebar"
+      [attr.inert]="sidebarOpen() ? null : ''"
+      [attr.aria-hidden]="sidebarOpen() ? null : 'true'"
+    >
+      <div class="sidebar-bar">
+        <label class="sidebar-search">
+          <span class="sr">Search questionnaires</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6" />
+            <path d="M16 16.5 20 20.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+          <input
+            type="search"
+            placeholder="Search"
+            autocomplete="off"
+            [value]="sidebarQuery()"
+            (input)="onSidebarQuery($event)"
+          />
+        </label>
+        <button type="button" class="icon-btn" aria-label="Close sidebar" (click)="closeSidebar()">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3.75" y="4.25" width="16.5" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            <path d="M9.25 4.25v15.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+          </svg>
+        </button>
+      </div>
 
+      <div class="sidebar-scroll">
+        <button type="button" class="new-chat" (click)="newChat()">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4.5 19.5h4.2L19 9.2a1.9 1.9 0 0 0 0-2.7l-.5-.5a1.9 1.9 0 0 0-2.7 0L5.5 15.3v4.2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+            <path d="M13.8 6.8l3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+          New chat
+        </button>
+
+        <section aria-labelledby="questionnaires-heading">
+          <h2 id="questionnaires-heading">Questionnaires</h2>
+          <ul class="sidebar-list">
+            @for (item of visibleQuestionnaires(); track item.id) {
+              <li>
+                <button
+                  type="button"
+                  (click)="selectQuestionnaire(item.id)"
+                  [attr.aria-pressed]="selectedId() === item.id"
+                >
+                  <svg class="file" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7.25 3.75h6.15L18.25 8.6V19.5a1.5 1.5 0 0 1-1.5 1.5h-9.5a1.5 1.5 0 0 1-1.5-1.5V5.25a1.5 1.5 0 0 1 1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                    <path d="M13.25 3.9V8.6h4.85" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                  </svg>
+                  <span>{{ item.name }}</span>
+                </button>
+              </li>
+            } @empty {
+              <li class="empty">No matches.</li>
+            }
+          </ul>
+        </section>
+
+        <section aria-labelledby="recents-heading">
+          <h2 id="recents-heading">Recents</h2>
+          <p class="empty">No chats yet.</p>
+        </section>
+      </div>
+    </aside>
+  </div>
+
+  <button
+    type="button"
+    class="icon-btn reopen"
+    aria-label="Open sidebar"
+    [attr.inert]="sidebarOpen() ? '' : null"
+    [attr.aria-hidden]="sidebarOpen() ? 'true' : null"
+    (click)="openSidebar()"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3.75" y="4.25" width="16.5" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+      <path d="M9.25 4.25v15.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+    </svg>
+  </button>
+
+  <div class="canvas">
+    <div class="column">
     <h1>What idea should we research?</h1>
 
     <div class="composer">
       <label class="prompt">
         <span class="sr">Search questionnaires</span>
         <textarea
+          #prompt
           rows="1"
-          placeholder="Work with Founders"
+          [attr.maxlength]="searchMaxLength"
+          aria-describedby="search-count"
           [value]="draft()"
           (input)="onDraft($event)"
         ></textarea>
+        @if (!draft()) {
+          <span class="rotating" aria-hidden="true" (animationiteration)="nextHint()">{{ hint() }}</span>
+        }
       </label>
       <div class="tools">
         <div class="tools-end">
@@ -43,6 +119,16 @@
           </button>
         </div>
       </div>
+    </div>
+    <div class="composer-meta">
+      @if (session(); as current) {
+        <p class="session">Signed in as {{ current.name }}.</p>
+      } @else if (loadError()) {
+        <p class="session">The session could not be loaded.</p>
+      } @else {
+        <p class="session">Loading the session.</p>
+      }
+      <p id="search-count" class="count">{{ draft().length }} / {{ searchMaxLength }}</p>
     </div>
 
     @if (selected(); as item) {
@@ -55,17 +141,19 @@
             </svg>
           </button>
         </div>
-        @if (selectedCopy(); as copy) {
-          @if (copy.status === 'loading') {
-            <p class="note">Loading {{ item.name }}'s questionnaire.</p>
-          } @else if (copy.status === 'missing') {
-            <p class="note">{{ item.name }}'s questionnaire could not be loaded.</p>
-          } @else if (!copy.text.trim()) {
-            <p class="note">No answers yet.</p>
-          } @else {
-            <pre class="answers">{{ copy.text }}</pre>
+        <div class="popup-body">
+          @if (selectedCopy(); as copy) {
+            @if (copy.status === 'loading') {
+              <p class="note">Loading {{ item.name }}'s questionnaire.</p>
+            } @else if (copy.status === 'missing') {
+              <p class="note">{{ item.name }}'s questionnaire could not be loaded.</p>
+            } @else if (!copy.text.trim()) {
+              <p class="note">No answers yet.</p>
+            } @else {
+              <pre class="answers">{{ copy.text }}</pre>
+            }
           }
-        }
+        </div>
       </dialog>
     }
 
@@ -74,12 +162,6 @@
         <app-finding-review [findings]="findings()" />
       </div>
     }
-    @if (session(); as current) {
-      <p class="session">Signed in as {{ current.name }}.</p>
-    } @else if (loadError()) {
-      <p class="session">The session could not be loaded.</p>
-    } @else {
-      <p class="session">Loading the session.</p>
-    }
+    </div>
   </div>
 </div>
