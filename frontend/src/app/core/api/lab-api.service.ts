@@ -25,8 +25,16 @@ export class LabApi {
     return this.http.get<Schemas['IdeaReading']>(`/api/v1/ideas/${id}`);
   }
 
+  deleteIdea(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/v1/ideas/${id}`);
+  }
+
   researchIdea(prompt: string): Observable<Schemas['IdeaReading']> {
     return this.http.post<Schemas['IdeaReading']>('/api/v1/ideas', { prompt });
+  }
+
+  continueIdea(id: string, prompt: string): Observable<Schemas['IdeaReading']> {
+    return this.http.post<Schemas['IdeaReading']>(`/api/v1/ideas/${id}/turns`, { prompt });
   }
 
   model(): Observable<Schemas['ModelResponse']> {

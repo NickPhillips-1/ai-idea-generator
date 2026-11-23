@@ -25,40 +25,16 @@ public class IdeaChat {
     @Column(nullable = false)
     private String prompt;
 
-    @Column(name = "factual_summary", nullable = false)
-    private String factualSummary;
-
-    @Column(name = "supporting_evidence", nullable = false)
-    private String supportingEvidence;
-
-    @Column(name = "ai_interpretation", nullable = false)
-    private String aiInterpretation;
-
-    @Column(nullable = false)
-    private String unknowns;
-
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     protected IdeaChat() {
     }
 
-    public IdeaChat(
-            UUID workspaceId,
-            UUID founderId,
-            String prompt,
-            String factualSummary,
-            String supportingEvidence,
-            String aiInterpretation,
-            String unknowns
-    ) {
+    public IdeaChat(UUID workspaceId, UUID founderId, String prompt) {
         this.workspaceId = workspaceId;
         this.founderId = founderId;
         this.prompt = prompt;
-        this.factualSummary = factualSummary;
-        this.supportingEvidence = supportingEvidence;
-        this.aiInterpretation = aiInterpretation;
-        this.unknowns = unknowns;
     }
 
     @PrePersist
@@ -83,22 +59,6 @@ public class IdeaChat {
 
     public String getPrompt() {
         return prompt;
-    }
-
-    public String getFactualSummary() {
-        return factualSummary;
-    }
-
-    public String getSupportingEvidence() {
-        return supportingEvidence;
-    }
-
-    public String getAiInterpretation() {
-        return aiInterpretation;
-    }
-
-    public String getUnknowns() {
-        return unknowns;
     }
 
     public Instant getCreatedAt() {

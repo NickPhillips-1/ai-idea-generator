@@ -1,4 +1,4 @@
-<div class="home" [class.has-thread]="hasThread()">
+<div class="home" [class.has-thread]="hasThread()" [class.is-resizing]="resizing()">
   <button
     type="button"
     class="backdrop"
@@ -7,7 +7,12 @@
     aria-hidden="true"
     (click)="closeSidebar()"
   ></button>
-  <div class="sidebar-slot" [class.is-closed]="!sidebarOpen()">
+  <div
+    class="sidebar-slot"
+    [class.is-closed]="!sidebarOpen()"
+    [class.is-resizing]="resizing()"
+    [style.--sidebar-width.px]="sidebarWidth()"
+  >
     <aside
       class="sidebar"
       aria-label="Sidebar"
@@ -19,7 +24,13 @@
           <span class="sr">Search</span>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="11" cy="11" r="6.25" fill="none" stroke="currentColor" stroke-width="1.6" />
-            <path d="M16 16.5 20 20.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <path
+              d="M16 16.5 20 20.5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
           </svg>
           <input
             type="search"
@@ -31,7 +42,16 @@
         </label>
         <button type="button" class="icon-btn" aria-label="Close sidebar" (click)="closeSidebar()">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="3.75" y="4.25" width="16.5" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+            <rect
+              x="3.75"
+              y="4.25"
+              width="16.5"
+              height="15.5"
+              rx="2"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            />
             <path d="M9.25 4.25v15.5" fill="none" stroke="currentColor" stroke-width="1.6" />
           </svg>
         </button>
@@ -40,8 +60,20 @@
       <div class="sidebar-scroll">
         <button type="button" class="new-chat" (click)="newChat()">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4.5 19.5h4.2L19 9.2a1.9 1.9 0 0 0 0-2.7l-.5-.5a1.9 1.9 0 0 0-2.7 0L5.5 15.3v4.2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
-            <path d="M13.8 6.8l3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <path
+              d="M4.5 19.5h4.2L19 9.2a1.9 1.9 0 0 0 0-2.7l-.5-.5a1.9 1.9 0 0 0-2.7 0L5.5 15.3v4.2z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M13.8 6.8l3.4 3.4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
           </svg>
           New chat
         </button>
@@ -57,8 +89,20 @@
                   [attr.aria-pressed]="selectedId() === item.id"
                 >
                   <svg class="file" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M7.25 3.75h6.15L18.25 8.6V19.5a1.5 1.5 0 0 1-1.5 1.5h-9.5a1.5 1.5 0 0 1-1.5-1.5V5.25a1.5 1.5 0 0 1 1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
-                    <path d="M13.25 3.9V8.6h4.85" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                    <path
+                      d="M7.25 3.75h6.15L18.25 8.6V19.5a1.5 1.5 0 0 1-1.5 1.5h-9.5a1.5 1.5 0 0 1-1.5-1.5V5.25a1.5 1.5 0 0 1 1.5-1.5z"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M13.25 3.9V8.6h4.85"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                   <span>{{ item.name }}</span>
                 </button>
@@ -74,16 +118,67 @@
           @if (chatsError()) {
             <p class="empty">Chats could not be loaded.</p>
           } @else if (visibleChats().length) {
+            @if (deleteError()) {
+              <p class="empty">The chat could not be deleted.</p>
+            }
             <ul class="sidebar-list">
               @for (chat of visibleChats(); track chat.id) {
-                <li>
-                  <button
-                    type="button"
-                    (click)="openChat(chat.id)"
-                    [attr.aria-pressed]="openChatId() === chat.id"
-                  >
-                    <span>{{ chat.prompt }}</span>
-                  </button>
+                <li class="recent" [class.is-confirming]="pendingDelete()?.id === chat.id">
+                  @if (pendingDelete()?.id === chat.id) {
+                    <div class="confirm" role="group" aria-label="Are you sure?">
+                      <p>Are you sure?</p>
+                      <button type="button" (click)="cancelDelete()">Cancel</button>
+                      <button type="button" class="confirm-yes" (click)="confirmDelete()">
+                        Delete
+                      </button>
+                    </div>
+                  } @else {
+                    <button
+                      type="button"
+                      (click)="openChat(chat.id)"
+                      [attr.aria-pressed]="openChatId() === chat.id"
+                    >
+                      <span>{{ chat.prompt }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="delete-chat"
+                      [attr.aria-label]="'Delete ' + (chat.prompt || 'chat')"
+                      (click)="askToDelete(chat)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          d="M4.75 7h14.5"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.6"
+                          stroke-linecap="round"
+                        />
+                        <path
+                          d="M9.25 7V5.6a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1V7"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.6"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                        <path
+                          d="M6.75 7.5l.7 11.1a1.25 1.25 0 0 0 1.25 1.15h6.6a1.25 1.25 0 0 0 1.25-1.15l.7-11.1"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.6"
+                          stroke-linejoin="round"
+                        />
+                        <path
+                          d="M10.25 11v5.25M13.75 11v5.25"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.6"
+                          stroke-linecap="round"
+                        />
+                      </svg>
+                    </button>
+                  }
                 </li>
               }
             </ul>
@@ -105,19 +200,52 @@
         >
           @if (theme() === 'dark') {
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="3.25" fill="none" stroke="currentColor" stroke-width="1.6" />
-              <path d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M5.8 5.8l1.3 1.3M16.9 16.9l1.3 1.3M18.2 5.8l-1.3 1.3M7.1 16.9l-1.3 1.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              <circle
+                cx="12"
+                cy="12"
+                r="3.25"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              />
+              <path
+                d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M5.8 5.8l1.3 1.3M16.9 16.9l1.3 1.3M18.2 5.8l-1.3 1.3M7.1 16.9l-1.3 1.3"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+              />
             </svg>
             Light mode
           } @else {
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M16.6 13.4A6.4 6.4 0 0 1 10.6 5.1 6.6 6.6 0 1 0 16.6 13.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              <path
+                d="M16.6 13.4A6.4 6.4 0 0 1 10.6 5.1 6.6 6.6 0 1 0 16.6 13.4z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linejoin="round"
+              />
             </svg>
             Dark mode
           }
         </button>
       </div>
     </aside>
+    @if (sidebarOpen() && !narrow()) {
+      <div
+        class="sidebar-resize"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize sidebar"
+        tabindex="0"
+        [attr.aria-valuemin]="sidebarMin"
+        [attr.aria-valuemax]="sidebarMax"
+        [attr.aria-valuenow]="sidebarWidth()"
+        (pointerdown)="startResize($event)"
+        (keydown)="resizeFromKey($event)"
+      ></div>
+    }
   </div>
 
   <div class="canvas">
@@ -131,7 +259,16 @@
         (click)="openSidebar()"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3.75" y="4.25" width="16.5" height="15.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" />
+          <rect
+            x="3.75"
+            y="4.25"
+            width="16.5"
+            height="15.5"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+          />
           <path d="M9.25 4.25v15.5" fill="none" stroke="currentColor" stroke-width="1.6" />
         </svg>
       </button>
@@ -139,33 +276,78 @@
 
     <div class="stage-body">
       @if (hasThread()) {
-        <div class="thread">
-          @if (threadPrompt(); as prompt) {
-            <p class="user-turn">{{ prompt }}</p>
-          }
-          @if (sending()) {
-            <p class="note activity" aria-live="polite" (animationiteration)="nextStatus()">{{ statusLine() }}</p>
-          } @else if (sendError()) {
-            <p class="note">{{ sendError() }}</p>
-          }
-          @if (reading(); as result) {
-            <article class="reading">
-              <h2>Factual summary</h2>
-              <p>{{ result.factualSummary }}</p>
-              <h2>Supporting evidence</h2>
-              <p>{{ result.supportingEvidence }}</p>
-              <h2>AI interpretation</h2>
-              <p>{{ result.aiInterpretation }}</p>
-              <h2>Unknowns</h2>
-              <p>{{ result.unknowns }}</p>
-            </article>
-          }
-          @if (findings().length) {
-            <div class="findings">
-              <app-finding-review [findings]="findings()" />
-            </div>
-          }
+        <div class="thread" #thread (scroll)="placeThumb()">
+          <div class="thread-column">
+            @for (turn of turns(); track $index) {
+              <p class="user-turn">{{ turn.prompt }}</p>
+              <article class="reading">
+                <h2>Factual summary</h2>
+                <p>{{ turn.factualSummary }}</p>
+                <h2>Supporting evidence</h2>
+                <p>{{ turn.supportingEvidence }}</p>
+                <h2>AI interpretation</h2>
+                <p>{{ turn.aiInterpretation }}</p>
+                <h2>Unknowns</h2>
+                <p>{{ turn.unknowns }}</p>
+              </article>
+            }
+            @if (pendingPrompt()) {
+              <p class="user-turn">{{ pendingPrompt() }}</p>
+            }
+            @if (sending()) {
+              <div class="activity-row">
+                <span class="spin" aria-hidden="true"></span>
+                <p class="note activity" aria-live="polite" (animationiteration)="nextStatus()">
+                  {{ statusLine() }}
+                </p>
+              </div>
+            } @else if (sendError()) {
+              <p class="note">{{ sendError() }}</p>
+            }
+            @if (findings().length) {
+              <div class="findings">
+                <app-finding-review [findings]="findings()" />
+              </div>
+            }
+          </div>
         </div>
+      }
+      @if (sending() || reading()) {
+        <aside class="sources" aria-labelledby="sources-heading">
+          <h2 id="sources-heading">Sources</h2>
+          <ul>
+            @for (item of questionnaires; track item.id) {
+              <li>
+                <button
+                  type="button"
+                  [attr.aria-label]="item.name + ' questionnaire, ' + item.file"
+                  (click)="selectQuestionnaire(item.id)"
+                >
+                  <svg class="file" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M7.25 3.75h6.15L18.25 8.6V19.5a1.5 1.5 0 0 1-1.5 1.5h-9.5a1.5 1.5 0 0 1-1.5-1.5V5.25a1.5 1.5 0 0 1 1.5-1.5z"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M13.25 3.9V8.6h4.85"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  <span class="source-copy">
+                    <span class="source-name">{{ item.name }}</span>
+                    <span class="source-file">{{ item.file }}</span>
+                  </span>
+                </button>
+              </li>
+            }
+          </ul>
+        </aside>
       }
 
       <div class="prompt-block">
@@ -184,7 +366,9 @@
               (input)="onDraft($event)"
             ></textarea>
             @if (!draft()) {
-              <span class="rotating" aria-hidden="true" (animationiteration)="nextHint()">{{ hint() }}</span>
+              <span class="rotating" aria-hidden="true" (animationiteration)="nextHint()">{{
+                hint()
+              }}</span>
             }
           </label>
           <div class="tools">
@@ -205,7 +389,14 @@
                   <span class="spinner"></span>
                 } @else {
                   <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 19V5M7 10l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    <path
+                      d="M12 19V5M7 10l5-5 5 5"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 }
               </button>
@@ -224,13 +415,25 @@
     </div>
 
     @if (selected(); as item) {
-      <dialog class="popup" #popup aria-labelledby="questionnaire-title" (click)="onBackdrop($event)" (close)="closeQuestionnaire()">
+      <dialog
+        class="popup"
+        #popup
+        aria-labelledby="questionnaire-title"
+        (click)="onBackdrop($event)"
+        (close)="closeQuestionnaire()"
+      >
         <div class="popup-sheet">
           <div class="popup-bar">
             <h2 id="questionnaire-title">{{ item.name }}</h2>
             <button type="button" class="close" aria-label="Close" (click)="closeQuestionnaire()">
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                <path
+                  d="M6 6l12 12M18 6L6 18"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                />
               </svg>
             </button>
           </div>
@@ -251,5 +454,23 @@
       </dialog>
     }
 
+    @if (thumbOn()) {
+      <div class="rail" (pointerdown)="jumpThumb($event)">
+        <div
+          class="thumb"
+          role="scrollbar"
+          aria-orientation="vertical"
+          aria-label="Reading"
+          tabindex="0"
+          [attr.aria-valuemin]="0"
+          [attr.aria-valuemax]="thumbMax()"
+          [attr.aria-valuenow]="thumbNow()"
+          [style.height.px]="thumbHeight()"
+          [style.transform]="'translateY(' + thumbTop() + 'px)'"
+          (pointerdown)="dragThumb($event)"
+          (keydown)="slideThumb($event)"
+        ></div>
+      </div>
+    }
   </div>
 </div>
